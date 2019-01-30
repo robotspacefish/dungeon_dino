@@ -13,8 +13,6 @@ function _init()
 		x1=127-15,
 		y1=127/1.5-15
 	}
-	starting_sprite=1
-	max_sprite=4
 end--init
 
 function _update()
@@ -24,14 +22,7 @@ end--_update()
 function _draw()
 	cls()
 	dungeons.draw()
-	--player
-	player.sprite=starting_sprite
-	spr(player.sprite,player.x,player.y,1,1,player.flp)
-	print(player.sprite,2,2,8)
-	print(max_sprite,10,10,1)
-	-- center lines debug
-	-- line(0,(127/1.5)/2,127,(127/1.5)/2,8)
-	-- line(127/2,0,127/2,127/1.5,8)
+	player.draw()
 end--_draw()
 
 -->8
@@ -46,6 +37,10 @@ player={
 	anim_wait=0.08,
 	flp=false,
 	direction="right",
+	draw=function()
+		--player
+		spr(player.sprite,player.x,player.y,1,1,player.flp)
+	end,
 	update=function()
 		-- right wall collision
 		if player.x+player.size>=floor.x1 then player.x=floor.x1-player.size end
@@ -84,23 +79,16 @@ player={
 		if player.walking then
 			if player.direction == "left" or player.direction == "right" then
 				-- player.sprite=1
-					starting_sprite=1
 			elseif player.direction == "up" then
 				-- player.sprite=33
-				starting_sprite=33
 			elseif player.direction == "down" then
 				-- player.sprite=17
-				starting_sprite=17
 			end
 
-			max_sprite=starting_sprite+3
-
 			if time()-player.anim_time>player.anim_wait then
-				-- player.sprite+=1
-				starting_sprite+=1
+				player.sprite+=1
 				player.anim_time=time()
-				if starting_sprite >= max_sprite then starting_sprite=max_sprite-3 end
-				-- if player.sprite>4 then player.sprite=1 end
+				if player.sprite>4 then player.sprite=1 end
 			end
 		end
 	end--player.animate()
