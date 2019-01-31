@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
--- todo figure out why dino wont animate properly
+-- todo fix animation where for about 3 frames after pressing a different direction, the dino doesn't update to the right sprite
 function _init()
 	door_size=10
 	floor={
@@ -14,7 +14,6 @@ end--init
 
 function _update()
 	player.update()
-	player.animate()
 end--_update()
 
 function _draw()
@@ -23,6 +22,11 @@ function _draw()
 	player.draw()
 end--_draw()
 
+
+function print_debug()
+	print("sprite:"..player.sprite,2,2,8)
+	print("direction:"..player.direction,2,10,8)
+end
 -->8
 --================ PLAYER ======================================
 player={
@@ -32,7 +36,7 @@ player={
 	sprite=1,
 	walking=false,
 	anim_time=0,
-	anim_wait=0.08,
+	anim_wait=0.16,
 	flp=false,
 	direction=""
 }
@@ -41,15 +45,15 @@ player={
 player.draw=function()
 		--player
 		spr(player.sprite,player.x,player.y,1,1,player.flp)
-		print(player.sprite,2,2,8)
+		print_debug()
 end
 
 ------- player.update --------------
 player.update=function()
 	player.walking=false
-
 	player.boundaries()
 	player.controls()
+	player.set_sprite()
 	end
 
 ------- player.controls --------------
@@ -58,47 +62,44 @@ player.controls=function()
 		player.x-=1
 		player.walking=true
 		player.flp=true
-		player.direction = "left"
+		player.direction = "l"
 	elseif btn(1) then
 		player.x+=1
 		player.walking=true
 		player.flp=false
-		player.direction = "right"
+		player.direction = "r"
 	elseif btn(2) then
 		player.y-=1
 		player.walking=true
-		player.direction = "up"
+		player.direction = "u"
+		player.flp=false
 	elseif btn(3) then
 		player.y+=1
 		player.walking=true
-		player.direction = "down"
+		player.direction = "d"
+		player.flp=false
 	end
 end
-------- player.animate --------------
-player.animate=function()
+
+------- player.set_sprite --------------
+player.set_sprite=function()
 	if player.walking then
-		if player.direction == "left" or player.direction == "right" then
-			player.sprite=1
-			if time()-player.anim_time>player.anim_wait then
-				player.sprite+=1
-				player.anim_time=time()
-				if player.sprite>4 then player.sprite=1 end
-			end
-		elseif player.direction == "up" then
-			player.sprite=33
-			if time()-player.anim_time>player.anim_wait then
-				player.sprite+=1
-				player.anim_time=time()
-				if player.sprite>36 then player.sprite=33 end
-			end
-		elseif player.direction == "down" then
-			player.sprite=17
-			if time()-player.anim_time>player.anim_wait then
-				player.sprite+=1
-				player.anim_time=time()
-				if player.sprite>20 then player.sprite=17 end
-			end
-		end
+		if player.direction=="l" or player.direction=="r" then player.animate(1,4) end
+		if player.direction=="u" then player.animate(7,8) end
+		if player.direction=="d" then player.animate(5,6) end
+	else
+		if player.direction=="l" or player.direction=="r" then player.sprite=1 end
+		if player.direction=="u" then player.sprite=7 end
+		if player.direction=="d" then player.sprite=5 end
+	end
+end
+
+------- player.animate --------------
+player.animate=function(first,last)
+	if time()-player.anim_time>player.anim_wait then
+		player.sprite+=1
+		player.anim_time=time()
+		if player.sprite>last then player.sprite=first end
 	end
 end--player.animate()
 
@@ -198,14 +199,14 @@ function draw_west_door()
 end
 
 __gfx__
-00000000000303300003033000030330000303308000000800000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000003bbdbb003bbdbb003bbdbb003bbdbb0800008000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700000bbbbb000bbbbb000bbbbb000bbbbb0080080000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000000330000003300000033000000330000008800000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000b00333000b033300b00333000b0333000008800000000000000000000000000000000000000000000000000000000000000000000000000000000000
-007007000bb990b00bb990b00bb990b00bb990b00080080000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000940000009400000049000000490000800008000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000b3000000b30000003b0000003b0008000000800000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000303300003033000030330000303300003300000033000000330000003300000000000000000000000000000000000000000000000000000000000
+00000000003bbdbb003bbdbb003bbdbb003bbdbb0bdbbdb00bdbbdb00bbbbbb00bbbbbb000000000000000000000000000000000000000000000000000000000
+00700700000bbbbb000bbbbb000bbbbb000bbbbb0bbbbbb00bbbbbb00bbbbbb00bbbbbb000000000000000000000000000000000000000000000000000000000
+00077000000330000003300000033000000330000003300000033000000330000003300000000000000000000000000000000000000000000000000000000000
+00077000b00333000b033300b00333000b0333000033330000333300003333000033330000000000000000000000000000000000000000000000000000000000
+007007000bb990b00bb990b00bb990b00bb990b0000990b00b099000000990b00b09900000000000000000000000000000000000000000000000000000000000
+00000000000940000009400000049000000490000009400000049000000940000004900000000000000000000000000000000000000000000000000000000000
+00000000000b3000000b30000003b0000003b000000b30000003b000000b30000003b00000000000000000000000000000000000000000000000000000000000
 00000000000330000003300000033000000330000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000bdbbdb00bdbbdb00bdbbdb00bdbbdb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000bbbbbb00bbbbbb00bbbbbb00bbbbbb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
