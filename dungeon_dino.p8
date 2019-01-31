@@ -14,7 +14,6 @@ end--init
 
 function _update()
 	player.update()
-	player.animate()
 end--_update()
 
 function _draw()
@@ -23,6 +22,11 @@ function _draw()
 	player.draw()
 end--_draw()
 
+
+function print_debug()
+	print("sprite:"..player.sprite,2,2,8)
+	-- print("delay:"..delay,0,16,8)
+end
 -->8
 --================ PLAYER ======================================
 player={
@@ -41,15 +45,15 @@ player={
 player.draw=function()
 		--player
 		spr(player.sprite,player.x,player.y,1,1,player.flp)
-		print(player.sprite,2,2,8)
+		print_debug()
 end
 
 ------- player.update --------------
 player.update=function()
 	player.walking=false
-
 	player.boundaries()
 	player.controls()
+	player.set_sprite()
 	end
 
 ------- player.controls --------------
@@ -58,47 +62,44 @@ player.controls=function()
 		player.x-=1
 		player.walking=true
 		player.flp=true
-		player.direction = "left"
+		player.direction = "l"
 	elseif btn(1) then
 		player.x+=1
 		player.walking=true
 		player.flp=false
-		player.direction = "right"
+		player.direction = "r"
 	elseif btn(2) then
 		player.y-=1
 		player.walking=true
-		player.direction = "up"
+		player.direction = "u"
+		player.flp=false
 	elseif btn(3) then
 		player.y+=1
 		player.walking=true
-		player.direction = "down"
+		player.direction = "d"
+		player.flp=false
 	end
 end
-------- player.animate --------------
-player.animate=function()
+
+------- player.set_sprite --------------
+player.set_sprite=function()
 	if player.walking then
-		if player.direction == "left" or player.direction == "right" then
-			player.sprite=1
-			if time()-player.anim_time>player.anim_wait then
-				player.sprite+=1
-				player.anim_time=time()
-				if player.sprite>4 then player.sprite=1 end
-			end
-		elseif player.direction == "up" then
-			player.sprite=33
-			if time()-player.anim_time>player.anim_wait then
-				player.sprite+=1
-				player.anim_time=time()
-				if player.sprite>36 then player.sprite=33 end
-			end
-		elseif player.direction == "down" then
-			player.sprite=17
-			if time()-player.anim_time>player.anim_wait then
-				player.sprite+=1
-				player.anim_time=time()
-				if player.sprite>20 then player.sprite=17 end
-			end
-		end
+		if player.direction=="l" or player.direction=="r" then player.animate(1,4) end
+		if player.direction=="u" then player.animate(33,36) end
+		if player.direction=="d" then player.animate(17,20) end
+	else
+		if player.direction=="l" or player.direction=="r" then player.sprite=1 end
+		if player.direction=="u" then player.sprite=33 end
+		if player.direction=="d" then player.sprite=17 end
+	end
+end
+
+------- player.animate --------------
+player.animate=function(first,last)
+	if time()-player.anim_time>player.anim_wait then
+		player.sprite+=1
+		player.anim_time=time()
+		if player.sprite>last then player.sprite=first end
 	end
 end--player.animate()
 
