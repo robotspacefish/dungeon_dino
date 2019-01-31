@@ -34,7 +34,7 @@ player={
 	anim_time=0,
 	anim_wait=0.08,
 	flp=false,
-	direction="right"
+	direction=""
 }
 
 ------- player.draw --------------
@@ -46,38 +46,34 @@ end
 
 ------- player.update --------------
 player.update=function()
-		-- right wall collision
-		if player.x+player.size>=floor.x1 then player.x=floor.x1-player.size end
-		-- left wall collision
-		if player.x<=floor.x0 then player.x=floor.x0 end
-		-- top wall collision
-		if player.y<=floor.y0 then player.y=floor.y0 end
-		-- bottom wall collision
-		if player.y+player.size>=floor.y1 then player.y=floor.y1-player.size end
+	player.walking=false
 
-		-- controls
-		if btn(0) then
-			player.x-=1
-			player.walking=true
-			player.flp=true
-			player.direction = "left"
-		elseif btn(1) then
-			player.x+=1
-			player.walking=true
-			player.flp=false
-			player.direction = "right"
-		elseif btn(2) then
-			player.y-=1
-			player.walking=true
-			player.direction = "up"
-		elseif btn(3) then
-			player.y+=1
-			player.walking=true
-			player.direction = "down"
-		end
-		-- player.walking=false
+	player.boundaries()
+	player.controls()
 	end
 
+------- player.controls --------------
+player.controls=function()
+	if btn(0) then
+		player.x-=1
+		player.walking=true
+		player.flp=true
+		player.direction = "left"
+	elseif btn(1) then
+		player.x+=1
+		player.walking=true
+		player.flp=false
+		player.direction = "right"
+	elseif btn(2) then
+		player.y-=1
+		player.walking=true
+		player.direction = "up"
+	elseif btn(3) then
+		player.y+=1
+		player.walking=true
+		player.direction = "down"
+	end
+end
 ------- player.animate --------------
 player.animate=function()
 	if player.walking then
@@ -106,6 +102,17 @@ player.animate=function()
 	end
 end--player.animate()
 
+
+player.boundaries=function()
+	-- right wall collision
+	if player.x+player.size>=floor.x1 then player.x=floor.x1-player.size end
+	-- left wall collision
+	if player.x<=floor.x0 then player.x=floor.x0 end
+	-- top wall collision
+	if player.y<=floor.y0 then player.y=floor.y0 end
+	-- bottom wall collision
+	if player.y+player.size>=floor.y1 then player.y=floor.y1-player.size end
+end
 
 -->8
 --================ DUNGEONS ======================================
