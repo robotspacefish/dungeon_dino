@@ -43,9 +43,7 @@ player={
 
 ------- player.draw --------------
 player.draw=function()
-		--player
 		spr(player.sprite,player.x,player.y,1,1,player.flp)
-		print_debug()
 end
 
 ------- player.update --------------
