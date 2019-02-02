@@ -166,11 +166,12 @@ room={
 -->8
 --================ MISC FUNCTIONS ======================================
 function draw_north_door()
-	rectfill(127/2-door_size/2,
-											door_size/2,
-											127/2+door_size/2,
-											14,
-											1)
+	-- rectfill(127/2-door_size/2,
+	-- 										door_size/2,
+	-- 										127/2+door_size/2,
+	-- 										14,
+	-- 										1)
+	spr(64,127/2-4,2,2,2)
 end
 
 function draw_south_door()
