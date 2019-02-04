@@ -10,6 +10,11 @@ function _init()
 		x1=127-15,
 		y1=127/1.5-15
 	}
+
+	--health sprites
+	full=9
+	half=10
+	empty=11
 end--init
 
 function _update()
@@ -18,8 +23,9 @@ end--_update()
 
 function _draw()
 	cls()
-	dungeons.draw()
+	-- dungeons.draw()
 	ui()
+	map(0,0,8,12)
 	player.draw()
 end--_draw()
 
@@ -55,7 +61,7 @@ player={
 	anim_time=0,
 	anim_wait=0.16,
 	flp=false,
-	direction=""
+	direction="",
 }
 
 ------- player.draw --------------
