@@ -22,10 +22,9 @@ function _update()
 end--_update()
 
 function _draw()
-	cls()
-	-- dungeons.draw()
+	cls(5)
 	ui()
-	map(0,0,8,12)
+	-- map(0,0,8,12)
 	player.draw()
 end--_draw()
 
