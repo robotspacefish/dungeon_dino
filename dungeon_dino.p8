@@ -19,9 +19,26 @@ end--_update()
 function _draw()
 	cls()
 	dungeons.draw()
+	ui()
 	player.draw()
 end--_draw()
 
+function ui()
+	x=4
+	--example health
+	spr(full,x,2)
+	spr(half,x+9,2)
+	spr(empty,x+18,2)
+
+	--example location
+	local location="room 1"
+	print(location, (128/2)-(#location)-7,4,7)
+
+	-- draw a border around the whole screen
+	rect(0, 0, 127, 127, 1)
+	-- draw a border inset by 16 pixels
+	-- rect(8, 12, 119, 128/1.5, 7)
+end
 
 function print_debug()
 	print("sprite:"..player.sprite,2,2,8)
