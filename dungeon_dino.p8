@@ -38,8 +38,9 @@ function ui()
 end
 
 function print_debug()
-	print("sprite:"..player.sprite,2,2,8)
-	print("direction:"..player.direction,2,10,8)
+	-- print("sprite:"..player.sprite,2,2,8)
+	-- print("direction:"..player.direction,2,10,8)
+
 end
 -->8
 --================ player ======================================
@@ -58,7 +59,6 @@ player={
 ------- player.draw --------------
 player.draw=function()
 		spr(getframe(player.sprites, player.direction),player.x*8,player.y*8,1,1,player.flp)
-		print(player.direction,10,10,8)
 end
 
 function getframe(anim,direction)
@@ -71,31 +71,43 @@ end
 player.update=function()
 	player.walking=false
 	player.controls()
-	-- player.set_sprite()
+
+
 	end
 
 ------- player.controls --------------
 player.controls=function()
+	local next_x,next_y=player.x,player.y
 	if btnp(0) then
-		player.x-=1
+		-- player.x-=1
+		next_x-=1
 		player.walking=true
 		player.flp=true
 		player.direction = 0
 	elseif btnp(1) then
-		player.x+=1
+		-- player.x+=1
+		next_x+=1
 		player.walking=true
 		player.flp=false
 		player.direction = 1
 	elseif btnp(2) then
-		player.y-=1
+		-- player.y-=1
+		next_y-=1
 		player.walking=true
 		player.direction = 2
 		player.flp=false
 	elseif btnp(3) then
-		player.y+=1
+		-- player.y+=1
+		next_y+=1
 		player.walking=true
 		player.direction = 3
 		player.flp=false
+	end
+
+	local next_tile=mget(next_x,next_y)
+	if not fget(next_tile,0) then
+		player.x=next_x
+		player.y=next_y
 	end
 end
 
