@@ -12,9 +12,11 @@ function _init()
 	}
 
 	--health sprites
-	full=9
-	half=10
-	empty=11
+	health={
+		full=64,
+		half=65,
+		empty=66
+	}
 end--init
 
 function _update()
@@ -31,9 +33,9 @@ end--_draw()
 function ui()
 	x=4
 	--example health
-	spr(full,x,4)
-	spr(half,x+9,4)
-	spr(empty,x+18,4)
+	spr(health.full,x,4)
+	spr(health.half,x+9,4)
+	spr(health.empty,x+18,4)
 
 	--example location for text
 	local location="room 1"
