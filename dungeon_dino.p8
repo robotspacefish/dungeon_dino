@@ -3,14 +3,6 @@ version 16
 __lua__
 -- todo fix animation where for about 3 frames after pressing a different direction, the dino doesn't update to the right sprite
 function _init()
-	door_size=10
-	floor={
-		x0=15,
-		y0=15,
-		x1=127-15,
-		y1=127/1.5-15
-	}
-
 	--health sprites
 	health={
 		full=64,
@@ -118,90 +110,9 @@ player.animate=function(first,last)
 		if player.sprite>last then player.sprite=first end
 	end
 end--player.animate()
-
--->8
---================ dungeons ======================================
-dungeons={
-	map={
-		dungeon_1={
-			room_1={
-				name="entrance",
-				door_n=true,
-				door_s=false,
-				door_e=true,
-				door_w=true,
-				items={},
-				current=true
-			}
-		}
-	},
-	draw=function()
-		local current_dungeon = dungeons.map.dungeon_1
-		local current_room=current_dungeon.room_1
-		room.draw(current_room.door_n,current_room.door_s,current_room.door_e,current_room.door_w)
-		-- print(current_room.door_n,0,0,1)
-	end
-}--end dungeons
-
-room={
-	draw=function(n,s,e,w)
-		local offset=15
-		--walls
-		rectfill(1,1,126,127/1.5,6)
-		--floor
-			rectfill(floor.x0,floor.y0,floor.x1,floor.y1,5)
-		--corners
-		local corner_col=1
-		line(0,0,14,14,corner_col)
-		line(127,0,127-14,14,corner_col)
-		line(0,127/1.5,14,127/1.5-14,corner_col)
-		line(127,127/1.5,127-14,127/1.5-14,corner_col)
-
-		--doors
-		if n then draw_north_door() end
-		if s then draw_south_door() end
-		if e then draw_east_door() end
-		if w then draw_west_door() end
-		--border
-		rect(0,0,127,127/1.5,7)
-	end
-}--end room
-
 -->8
 --================ misc functions ======================================
-function draw_north_door()
-	-- rectfill(127/2-door_size/2,
-	-- 										door_size/2,
-	-- 										127/2+door_size/2,
-	-- 										14,
-	-- 										1)
-	spr(64,127/2-4,2,2,2)
-end
 
-function draw_south_door()
-	rectfill(127/2-door_size/2,
-											127/2+door_size/2+2,
-											127/2+door_size/2,
-											127/2+16,
-										1)
-end
-
-function draw_east_door()
-	rectfill(14-door_size,
-											(127/1.5)/2-door_size/2,
-										 14,
-									  (127/1.5)/2+door_size/2,
-										 1)
-end
-
-function draw_west_door()
-	rectfill(127-4-door_size,
-										 (127/1.5)/2-door_size/2,
-											127-4,
-											(127/1.5)/2+door_size/2,
-											1)
-
-end
 
 __gfx__
 00000000000303300003033000030330000303300003300000033000000330000003300000000000000000000000000000000000000000000000000000000000
