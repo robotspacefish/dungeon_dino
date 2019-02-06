@@ -49,6 +49,11 @@ player={
 	walking=false,
 	anim_time=0,
 	anim_wait=0.16,
+	sprites={
+		u={7,8},
+		d={5,6},
+		lr={1,2,3,4}
+	},
 	flp=false,
 	direction="",
 }
