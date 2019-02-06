@@ -70,7 +70,7 @@ end
 player.update=function()
 	player.walking=false
 	player.controls()
-	player.set_sprite()
+	-- player.set_sprite()
 	end
 
 ------- player.controls --------------
@@ -99,17 +99,17 @@ player.controls=function()
 end
 
 ------- player.set_sprite --------------
-player.set_sprite=function()
-	if player.walking then
-		if player.direction=="l" or player.direction=="r" then player.animate(1,4) end
-		if player.direction=="u" then player.animate(7,8) end
-		if player.direction=="d" then player.animate(5,6) end
-	else
-		if player.direction=="l" or player.direction=="r" then player.sprite=1 end
-		if player.direction=="u" then player.sprite=7 end
-		if player.direction=="d" then player.sprite=5 end
-	end
-end
+-- player.set_sprite=function()
+-- 	if player.walking then
+-- 		if player.direction=="l" or player.direction=="r" then player.animate(1,4) end
+-- 		if player.direction=="u" then player.animate(7,8) end
+-- 		if player.direction=="d" then player.animate(5,6) end
+-- 	else
+-- 		if player.direction=="l" or player.direction=="r" then player.sprite=1 end
+-- 		if player.direction=="u" then player.sprite=7 end
+-- 		if player.direction=="d" then player.sprite=5 end
+-- 	end
+-- end
 
 ------- player.animate --------------
 player.animate=function(first,last)
@@ -125,7 +125,7 @@ end--player.animate()
 
 __gfx__
 00000000000303300003033000030330000303300003300000033000000330000003300000000000000000000000000000000000000000000000000000000000
-00000000003bbdbb003bbdbb003bbdbb003bbdbb0bbbbbb00bbbbbb00bdbbdb00bdbbdb000000000000000000000000000000000000000000000000000000000
+00000000003bbdbb003bbdbb003bbdbb003bbdbb0bdbbdb00bdbbdb00bbbbbb00bbbbbb000000000000000000000000000000000000000000000000000000000
 00700700000bbbbb000bbbbb000bbbbb000bbbbb0bbbbbb00bbbbbb00bbbbbb00bbbbbb000000000000000000000000000000000000000000000000000000000
 00077000000330000003300000033000000330000003300000033000000330000003300000000000000000000000000000000000000000000000000000000000
 00077000b00333000b033300b00333000b0333000033330000333300003333000033330000000000000000000000000000000000000000000000000000000000
