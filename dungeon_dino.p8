@@ -63,6 +63,7 @@ end
 
 function getframe(anim,direction)
 	-- return anim[flr(t/8)%#anim[direction+1]]
+	-- direction+1 because Lua tables start at 1 and the directions start at 0
 	return anim[direction+1][1]
 end
 
