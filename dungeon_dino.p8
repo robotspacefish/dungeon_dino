@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
--- todo fix animation where for about 3 frames after pressing a different direction, the dino doesn't update to the right sprite
+
 function _init()
 	--health sprites
 	health={
