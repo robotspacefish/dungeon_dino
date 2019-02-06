@@ -67,22 +67,22 @@ player.update=function()
 
 ------- player.controls --------------
 player.controls=function()
-	if btn(0) then
+	if btnp(0) then
 		player.x-=1
 		player.walking=true
 		player.flp=true
 		player.direction = "l"
-	elseif btn(1) then
+	elseif btnp(1) then
 		player.x+=1
 		player.walking=true
 		player.flp=false
 		player.direction = "r"
-	elseif btn(2) then
+	elseif btnp(2) then
 		player.y-=1
 		player.walking=true
 		player.direction = "u"
 		player.flp=false
-	elseif btn(3) then
+	elseif btnp(3) then
 		player.y+=1
 		player.walking=true
 		player.direction = "d"
