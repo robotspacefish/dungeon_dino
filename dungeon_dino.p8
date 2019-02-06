@@ -23,9 +23,8 @@ end--_update()
 
 function _draw()
 	cls()
-	-- dungeons.draw()
-	ui()
-	map(0,0,8,12)
+	--ui()
+	map(0,0)
 	player.draw()
 end--_draw()
 
@@ -51,7 +50,7 @@ function print_debug()
 	print("direction:"..player.direction,2,10,8)
 end
 -->8
---================ PLAYER ======================================
+--================ player ======================================
 player={
 	x=60,
 	y=(127/1.5)/2-4,
@@ -137,7 +136,7 @@ player.boundaries=function()
 end
 
 -->8
---================ DUNGEONS ======================================
+--================ dungeons ======================================
 dungeons={
 	map={
 		dungeon_1={
@@ -185,7 +184,7 @@ room={
 }--end room
 
 -->8
---================ MISC FUNCTIONS ======================================
+--================ misc functions ======================================
 function draw_north_door()
 	-- rectfill(127/2-door_size/2,
 	-- 										door_size/2,
