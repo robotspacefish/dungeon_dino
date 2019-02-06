@@ -3,6 +3,7 @@ version 16
 __lua__
 
 function _init()
+	t=0 -- keep track of frames as update runs
 	--health sprites
 	health={
 		full=64,
@@ -12,6 +13,7 @@ function _init()
 end--init
 
 function _update()
+	t+=1
 	player.update()
 end--_update()
 
@@ -45,22 +47,23 @@ player={
 	x=1,
 	y=3,
 	size=8,
-	sprite=1,
 	walking=false,
 	anim_time=0,
 	anim_wait=0.16,
-	sprites={
-		u={7,8},
-		d={5,6},
-		lr={1,2,3,4}
-	},
+	sprites={{1,2,3,4},{1,2,3,4},{5,6},{7,8}}, --l,r,u,d
 	flp=false,
-	direction="",
+	direction=0,
 }
 
 ------- player.draw --------------
 player.draw=function()
-		spr(player.sprite,player.x*8,player.y*8,1,1,player.flp)
+		spr(getframe(player.sprites, player.direction),player.x*8,player.y*8,1,1,player.flp)
+		print(player.direction,10,10,8)
+end
+
+function getframe(anim,direction)
+	-- return anim[flr(t/8)%#anim[direction+1]]
+	return anim[direction+1][1]
 end
 
 ------- player.update --------------
@@ -76,21 +79,21 @@ player.controls=function()
 		player.x-=1
 		player.walking=true
 		player.flp=true
-		player.direction = "l"
+		player.direction = 0
 	elseif btnp(1) then
 		player.x+=1
 		player.walking=true
 		player.flp=false
-		player.direction = "r"
+		player.direction = 1
 	elseif btnp(2) then
 		player.y-=1
 		player.walking=true
-		player.direction = "u"
+		player.direction = 2
 		player.flp=false
 	elseif btnp(3) then
 		player.y+=1
 		player.walking=true
-		player.direction = "d"
+		player.direction = 3
 		player.flp=false
 	end
 end
