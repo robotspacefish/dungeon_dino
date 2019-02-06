@@ -23,7 +23,7 @@ end--_update()
 
 function _draw()
 	cls()
-	--ui()
+	ui()
 	map(0,0)
 	player.draw()
 end--_draw()
