@@ -68,7 +68,6 @@ end
 ------- player.update --------------
 player.update=function()
 	player.walking=false
-	player.boundaries()
 	player.controls()
 	player.set_sprite()
 	end
@@ -119,18 +118,6 @@ player.animate=function(first,last)
 		if player.sprite>last then player.sprite=first end
 	end
 end--player.animate()
-
-
-player.boundaries=function()
-	-- right wall collision
-	if player.x+player.size>=floor.x1 then player.x=floor.x1-player.size end
-	-- left wall collision
-	if player.x<=floor.x0 then player.x=floor.x0 end
-	-- top wall collision
-	if player.y<=floor.y0 then player.y=floor.y0 end
-	-- bottom wall collision
-	if player.y+player.size>=floor.y1 then player.y=floor.y1-player.size end
-end
 
 -->8
 --================ dungeons ======================================
