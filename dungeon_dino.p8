@@ -42,8 +42,8 @@ end
 -->8
 --================ player ======================================
 player={
-	x=60,
-	y=(127/1.5)/2-4,
+	x=1,
+	y=3,
 	size=8,
 	sprite=1,
 	walking=false,
@@ -55,7 +55,7 @@ player={
 
 ------- player.draw --------------
 player.draw=function()
-		spr(player.sprite,player.x,player.y,1,1,player.flp)
+		spr(player.sprite,player.x*8,player.y*8,1,1,player.flp)
 end
 
 ------- player.update --------------
