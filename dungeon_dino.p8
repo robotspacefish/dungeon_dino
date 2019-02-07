@@ -15,7 +15,8 @@ function _init()
 		r1={
 			x=0,
 			y=0,
-			keys=2
+			keys=2,
+			name="entrance"
 		}
 	}
 
@@ -47,9 +48,8 @@ function ui()
 	spr(health.half,x+9,4)
 	spr(health.empty,x+18,4)
 
-	--example location for text
-	-- local location=rooms[current_room+1]
-	-- print("Room"..location, (128/2)-(#location)-8,6,7)
+	local location=current_room.name
+	print(location, (128/2)-(#location)-8,6,7)
 end
 
 function print_debug()
