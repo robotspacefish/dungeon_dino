@@ -10,6 +10,14 @@ function _init()
 		half=65,
 		empty=66
 	}
+
+	rooms={
+		r1={
+			x=0,
+			y=0,
+			keys=2
+		}
+	}
 end--init
 
 function _update()
