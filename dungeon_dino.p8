@@ -18,6 +18,8 @@ function _init()
 			keys=2
 		}
 	}
+
+	current_room=rooms.r1
 end--init
 
 function _update()
@@ -29,11 +31,14 @@ function _draw()
 	cls()
 	palt(0,false)
 
-	map(0,0)
+	draw_room(current_room.x,current_room.y)
 	player.draw()
 	ui()
 end--_draw()
 
+function draw_room(x,y)
+	map(x,y)
+end
 function ui()
 	local x=4
 	--example health
