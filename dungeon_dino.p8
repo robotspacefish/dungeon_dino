@@ -43,6 +43,8 @@ end
 
 function ui()
 	local x=4
+	local key_spr=67
+	--top
 	--example health
 	spr(health.full,x,4)
 	spr(health.half,x+9,4)
@@ -50,6 +52,11 @@ function ui()
 
 	local location=current_room.name
 	print(location, (128/2)-(#location)-8,6,7)
+
+	--bottom
+	local b_y=14*8+4
+	spr(key_spr,x,b_y-2)
+	print(":"..player.keys,x+7,b_y)
 end
 
 function print_debug()
