@@ -141,15 +141,13 @@ player.controls=function()
 		mset(next_x,next_y,192)
 	end
 
---todo fix so it works for all chests, not just the first one you go to
---and mget(next_x,next_y,206) == 207
-	--key chest
-	if fget(next_tile,2) then
+local full_chest_spr=207
+local empty_chest_spr=206
+	--key chest has key in it
+	if mget(next_x,next_y) == full_chest_spr then
 		player.keys+=1
-		--remove key from chest by removing flag
-		fset(next_tile,2,false)
 		--change chest sprite
-		mset(next_x,next_y,206)
+		mset(next_x,next_y,empty_chest_spr)
 	end
 
 	--move if possible
