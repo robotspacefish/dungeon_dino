@@ -23,7 +23,7 @@ function _init()
 	current_room=rooms.r1
 end--init
 
-function _update()
+function _update60()
 	t+=1
 	player.update()
 end--_update()
@@ -94,7 +94,7 @@ end
 
 function getframe(anim,direction)
 	-- return anim[flr(t/8)%#anim[direction+1]]
-	-- direction+1 because Lua tables start at 1 and the directions start at 0
+	-- direction+1 because lua tables start at 1 and the directions start at 0
 	return anim[direction+1][1]
 end
 
