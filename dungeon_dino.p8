@@ -4,7 +4,7 @@ __lua__
 
 function _init()
 	t=0 -- keep track of frames as update runs
-	--health sprites
+	--health sprites --todo make local in ui?
 	health={
 		full=64,
 		half=65,
@@ -15,7 +15,8 @@ function _init()
 		r1={
 			x=0,
 			y=0,
-			keys=2
+			keys=2,
+			name="entrance"
 		}
 	}
 
@@ -42,14 +43,20 @@ end
 
 function ui()
 	local x=4
+	local key_spr=67
+	--top
 	--example health
 	spr(health.full,x,4)
 	spr(health.half,x+9,4)
 	spr(health.empty,x+18,4)
 
-	--example location for text
-	-- local location=rooms[current_room+1]
-	-- print("Room"..location, (128/2)-(#location)-8,6,7)
+	local location=current_room.name
+	print(location, (128/2)-(#location)-8,6,7)
+
+	--bottom
+	local b_y=14*8+4
+	spr(key_spr,x,b_y-2)
+	print(":"..player.keys,x+7,b_y)
 end
 
 function print_debug()
