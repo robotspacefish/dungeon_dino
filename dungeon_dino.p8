@@ -157,12 +157,12 @@ local empty_chest_spr=206
 end
 
 --================ misc functions ======================================
--- player.set_sprite=function()
--- 	if player.walking then
--- 		if player.direction=="l" or player.direction=="r" then player.animate(1,4) end
--- 		if player.direction=="u" then player.animate(7,8) end
--- 		if player.direction=="d" then player.animate(5,6) end
-	end
+function getframe(anim,direction)
+	-- direction+1 because lua tables start at 1 and the directions start at 0
+		local frameset=anim[direction+1]
+		--todo if spr isn't walking, show first frame of direction spr only
+		return frameset[flr(t/11)%#frameset+1]
+end
 
 __gfx__
 00000000000303300003033000030330000303300003300000033000000330000003300000000000000000000000000000000000000000000000000000000000
