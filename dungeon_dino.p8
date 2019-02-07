@@ -48,17 +48,8 @@ function ui()
 	spr(health.empty,x+18,4)
 
 	--example location for text
-	local location="room 1"
-	print(location, (128/2)-(#location)-8,6,7)
-
-	--inventory display
-	local y,y_add=14*8,2
-	local x_add=0
-	-- print("test",0,y+y_add,7)
-	for i in all(player.items) do
-		print(i,x+x_add,y+y_add,7)
-		x_add+=20
-	end
+	-- local location=rooms[current_room+1]
+	-- print("Room"..location, (128/2)-(#location)-8,6,7)
 end
 
 function print_debug()
@@ -78,12 +69,12 @@ player={
 	sprites={{1,2,3,4},{1,2,3,4},{5,6},{7,8}}, --l,r,u,d
 	flp=false,
 	direction=0,
-	items={}
+	keys=0
 }
 
 ------- player.draw --------------
 player.draw=function()
-		spr(getframe(player.sprites, player.direction),player.x*8,player.y*8,1,1,player.flp)
+		spr(getframe(player.sprites,player.direction),player.x*8,player.y*8,1,1,player.flp)
 end
 
 function getframe(anim,direction)
@@ -127,28 +118,21 @@ player.controls=function()
 		player.flp=false
 	end
 
-	--open locked doors
+	--get tile player wants to move to
 	local next_tile=mget(next_x,next_y)
-	local has_key=false
-	for i in all(player.items) do
-		if i=="key" then
-			has_key=true
-		end
-	end
 
-	--locked door
-	if fget(next_tile,7) and has_key then
-		--remove immovable flag
-		fset(next_tile,0,false)
+	--open locked doors
+	if fget(next_tile,7) and player.keys>0 then
+		--remove immovable flag from door sprite
+		-- fset(next_tile,0,false)
 		--change tile in location to unlocked door color
 		mset(next_x,next_y,next_tile+1)
 		--remove key from inventory
-		del(player.items,"key")
+		player.keys-=1
 	end
 
 	--vase
 	if fget(next_tile,1) then
-		print("break vase",10,10,8)
 		mset(next_x,next_y,192)
 	end
 
@@ -156,7 +140,7 @@ player.controls=function()
 --and mget(next_x,next_y,206) == 207
 	--key chest
 	if fget(next_tile,2) then
-		add(player.items,"key")
+		player.keys+=1
 		--remove key from chest by removing flag
 		fset(next_tile,2,false)
 		--change chest sprite
