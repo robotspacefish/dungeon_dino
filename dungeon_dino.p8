@@ -4,7 +4,7 @@ __lua__
 
 function _init()
 	t=0 -- keep track of frames as update runs
-	--health sprites
+	--health sprites --todo make local in ui?
 	health={
 		full=64,
 		half=65,
