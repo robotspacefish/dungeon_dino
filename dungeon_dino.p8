@@ -92,12 +92,6 @@ player.draw=function()
 		spr(getframe(player.sprites,player.direction),player.x*8,player.y*8,1,1,player.flp)
 end
 
-function getframe(anim,direction)
-	-- return anim[flr(t/8)%#anim[direction+1]]
-	-- direction+1 because lua tables start at 1 and the directions start at 0
-	return anim[direction+1][1]
-end
-
 ------- player.update --------------
 player.update=function()
 	player.walking=false
@@ -108,25 +102,21 @@ end
 player.controls=function()
 	local next_x,next_y=player.x,player.y
 	if btnp(0) then
-		-- player.x-=1
 		next_x-=1
 		player.walking=true
 		player.flp=true
 		player.direction = 0
 	elseif btnp(1) then
-		-- player.x+=1
 		next_x+=1
 		player.walking=true
 		player.flp=false
 		player.direction = 1
 	elseif btnp(2) then
-		-- player.y-=1
 		next_y-=1
 		player.walking=true
 		player.direction = 2
 		player.flp=false
 	elseif btnp(3) then
-		-- player.y+=1
 		next_y+=1
 		player.walking=true
 		player.direction = 3
@@ -166,30 +156,13 @@ local empty_chest_spr=206
 
 end
 
-------- player.set_sprite --------------
+--================ misc functions ======================================
 -- player.set_sprite=function()
 -- 	if player.walking then
 -- 		if player.direction=="l" or player.direction=="r" then player.animate(1,4) end
 -- 		if player.direction=="u" then player.animate(7,8) end
 -- 		if player.direction=="d" then player.animate(5,6) end
--- 	else
--- 		if player.direction=="l" or player.direction=="r" then player.sprite=1 end
--- 		if player.direction=="u" then player.sprite=7 end
--- 		if player.direction=="d" then player.sprite=5 end
--- 	end
--- end
-
-------- player.animate --------------
-player.animate=function(first,last)
-	if time()-player.anim_time>player.anim_wait then
-		player.sprite+=1
-		player.anim_time=time()
-		if player.sprite>last then player.sprite=first end
 	end
-end--player.animate()
--->8
---================ misc functions ======================================
-
 
 __gfx__
 00000000000303300003033000030330000303300003300000033000000330000003300000000000000000000000000000000000000000000000000000000000
