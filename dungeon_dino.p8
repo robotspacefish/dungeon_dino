@@ -20,19 +20,17 @@ function _init()
 			number=1,
 		}
 	}
-
+	current_tile={} -- contains x,y coords of tile player is standing on
 	current_room=rooms.r1
 	room_layout=get_map_layout()
-	-- vases=find_num_of_vases()
-	vases=init_vases_for_items()
+	vases=init_vases_for_items() -- find how many vases are in the room
 end--init
 
 function _update60()
 	t+=1
 	player.update()
 
-
-
+	vases_left=#vases
 end--_update()
 
 function _draw()
@@ -43,45 +41,22 @@ function _draw()
 	player.draw()
 	-- ui()
 
-	--debug
-	print("vases:"..#vases,0,0,7)
+	-- ======= debug delete when done and uncomment ui() ===============
+	if current_tile.x != nil then
+		print(current_tile.x..","..current_tile.y,10,10,7)
+	end
 
+	if is_vase_at_player_loc() then
+		print("vase",40,10,7)
+	end
+	print(vases_left,80,10,7)
+	-- ======= end delete when done ===============
 end--_draw()
 
 function draw_room(x,y)
 	map(x,y)
 end
 
-function ui()
-	local x=4
-	local key_spr=67
-	local jewel_spr=69
-	-- ======= top =======
-	--example health
-	spr(health.full,x,4)
-	spr(health.half,x+9,4)
-	spr(health.empty,x+18,4)
-
-	local location=current_room.name
-	print(location, (128/2)-(#location)-8,6,7)
-
-	-- ======= bottom =======
-	-- keys display
-	local b_y=14*8+4
-	spr(key_spr,x,b_y-2)
-	print(":"..player.keys,x+7,b_y)
-
-	--jewels display
-	local j_x=102
-	spr(jewel_spr,j_x,b_y-2)
-	print(":"..player.jewels,j_x+9,b_y)
-end
-
-function print_debug()
-	-- print("sprite:"..player.sprite,2,2,8)
-	-- print("direction:"..player.direction,2,10,8)
-
-end
 -->8
 --================ player ======================================
 player={
@@ -101,6 +76,8 @@ player={
 ------- player.draw --------------
 player.draw=function()
 		spr(getframe(player.sprites,player.direction),player.x*8,player.y*8,1,1,player.flp)
+
+
 end
 
 ------- player.update --------------
@@ -147,7 +124,14 @@ player.controls=function()
 
 	--vase
 	if fget(next_tile,1) then
+		--remove vase from map
 		mset(next_x,next_y,192)
+		--remove vase from vases table
+			for v in all(vases) do
+				if v.x==next_x and v.y==next_y then
+					del(vases,v)
+				end
+			end
 	end
 
 local full_chest_spr=207
@@ -163,9 +147,41 @@ local empty_chest_spr=206
 	if not fget(next_tile,0) then
 		player.x=next_x
 		player.y=next_y
-	end
 
+		--set current tile to see if it's a vase & what it contains
+		current_tile.x=next_x
+		current_tile.y=next_y
+	end
 end
+
+-->8
+--================ ui functions ======================================
+function ui()
+	local x=4
+	local key_spr=67
+	local jewel_spr=69
+	-- ======= top =======
+	--example health
+	spr(health.full,x,4)
+	spr(health.half,x+9,4)
+	spr(health.empty,x+18,4)
+
+	local location=current_room.name
+	print(location, (128/2)-(#location)-8,6,7)
+
+	-- ======= bottom =======
+	-- keys display
+	local b_y=14*8+4
+	spr(key_spr,x,b_y-2)
+	print(":"..player.keys,x+7,b_y)
+
+	--jewels display
+	local j_x=102
+	spr(jewel_spr,j_x,b_y-2)
+	print(":"..player.jewels,j_x+9,b_y)
+end
+
+-->8
 --================ misc functions ======================================
 function getframe(anim,direction)
 	-- direction+1 because lua tables start at 1 and the directions start at 0
@@ -225,7 +241,15 @@ function place_room_items()
 	local h=1 --# of health hidden
 	local j=math.floor(#vases-b-h) --# of jewels hidden
 	local v_total=#vases
+end
 
+function is_vase_at_player_loc()
+	for v in all(vases) do
+		if v.x==current_tile.x and v.y==current_tile.y then
+			return true
+		end
+	end
+	return false
 end
 
 __gfx__
