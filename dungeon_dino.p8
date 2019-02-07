@@ -16,16 +16,23 @@ function _init()
 			x=0,
 			y=0,
 			keys=2,
-			name="entrance"
+			name="entrance",
+			number=1,
 		}
 	}
 
 	current_room=rooms.r1
+	room_layout=get_map_layout()
+	-- vases=find_num_of_vases()
+	vases=init_vases_for_items()
 end--init
 
 function _update60()
 	t+=1
 	player.update()
+
+
+
 end--_update()
 
 function _draw()
@@ -34,7 +41,11 @@ function _draw()
 
 	draw_room(current_room.x,current_room.y)
 	player.draw()
-	ui()
+	-- ui()
+
+	--debug
+	print("vases:"..#vases,0,0,7)
+
 end--_draw()
 
 function draw_room(x,y)
@@ -161,6 +172,60 @@ function getframe(anim,direction)
 		local frameset=anim[direction+1]
 		--todo if player isn't walking, show first frame of direction spr only
 		return frameset[flr(t/11)%#frameset+1]
+end
+
+function get_map_layout()
+	-- finds x,y, and sprite at each map tile location
+	local room_map={}
+	local multiplier=current_room.number
+	for x=0,15 do
+		for y=0,15 do
+			-- add(room_map,mget(x*current_room.number,y*current_room.number))
+			local tile={}
+			tile.x=x*current_room.number
+			tile.y=y*current_room.number
+			tile.spr=mget(x*current_room.number,y*current_room.number)
+			add(room_map,tile)
+		end
+	end
+	return room_map
+end
+
+function find_num_of_vases()
+	--looks through room_layout and adds each vase to a vase count
+	local v=0
+	for t in all(room_layout) do
+		if t.spr==204 or t.spr==220 then
+			v+=1
+		end
+	end
+	return v
+end
+
+function init_vases_for_items()
+	local vase={}
+	for t in all(room_layout) do
+		if t.spr==204 or t.spr==220 then
+			local v={}
+			v.x=t.x
+			v.y=t.y
+			v.spr=t.spr
+			v.bombs=0
+			v.health=0
+			v.jewels=0
+			v.item=""
+			add(vase,v)
+		end
+	end
+	return vase
+end
+
+function place_room_items()
+	local b=3 --# of bombs hidden in each room
+	local h=1 --# of health hidden
+	local j=math.floor(#vases-b-h) --# of jewels hidden
+	local v_total=#vases
+
 end
 
 __gfx__
