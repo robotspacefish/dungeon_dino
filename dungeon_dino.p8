@@ -123,8 +123,6 @@ player.controls=function()
 
 	--open locked doors
 	if fget(next_tile,7) and player.keys>0 then
-		--remove immovable flag from door sprite
-		-- fset(next_tile,0,false)
 		--change tile in location to unlocked door color
 		mset(next_x,next_y,next_tile+1)
 		--remove key from inventory
