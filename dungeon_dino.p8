@@ -64,7 +64,7 @@ player={
 	sprites={{1,2,3,4},{1,2,3,4},{5,6},{7,8}}, --l,r,u,d
 	flp=false,
 	direction=0,
-	items={"key", "taco"}
+	items={}
 }
 
 ------- player.draw --------------
