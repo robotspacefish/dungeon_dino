@@ -16,7 +16,7 @@ function _init()
 			x=0,
 			y=0,
 			keys=2,
-			name="entrance"
+			name="entrance",
 		}
 	}
 
@@ -44,7 +44,8 @@ end
 function ui()
 	local x=4
 	local key_spr=67
-	--top
+	local jewel_spr=69
+	-- ======= top =======
 	--example health
 	spr(health.full,x,4)
 	spr(health.half,x+9,4)
@@ -53,10 +54,16 @@ function ui()
 	local location=current_room.name
 	print(location, (128/2)-(#location)-8,6,7)
 
-	--bottom
+	-- ======= bottom =======
+	-- keys display
 	local b_y=14*8+4
 	spr(key_spr,x,b_y-2)
 	print(":"..player.keys,x+7,b_y)
+
+	--jewels display
+	local j_x=102
+	spr(jewel_spr,j_x,b_y-2)
+	print(":"..player.jewels,j_x+9,b_y)
 end
 
 function print_debug()
@@ -76,7 +83,8 @@ player={
 	sprites={{1,2,3,4},{1,2,3,4},{5,6},{7,8}}, --l,r,u,d
 	flp=false,
 	direction=0,
-	keys=0
+	keys=0,
+	jewels=0
 }
 
 ------- player.draw --------------
