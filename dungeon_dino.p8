@@ -39,6 +39,7 @@ end--_draw()
 function draw_room(x,y)
 	map(x,y)
 end
+
 function ui()
 	local x=4
 	--example health
@@ -135,6 +136,7 @@ player.controls=function()
 		end
 	end
 
+	--locked door
 	if fget(next_tile,7) and has_key then
 		--remove immovable flag
 		fset(next_tile,0,false)
@@ -149,6 +151,19 @@ player.controls=function()
 		print("break vase",10,10,8)
 		mset(next_x,next_y,192)
 	end
+
+--todo fix so it works for all chests, not just the first one you go to
+--and mget(next_x,next_y,206) == 207
+	--key chest
+	if fget(next_tile,2) then
+		add(player.items,"key")
+		--remove key from chest by removing flag
+		fset(next_tile,2,false)
+		--change chest sprite
+		mset(next_x,next_y,206)
+	end
+
+	--move if possible
 	if not fget(next_tile,0) then
 		player.x=next_x
 		player.y=next_y
