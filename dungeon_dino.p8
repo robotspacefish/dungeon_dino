@@ -131,6 +131,11 @@ player.controls=function()
 		del(player.items,"key")
 	end
 
+	--vase
+	if fget(next_tile,1) then
+		print("break vase",10,10,8)
+		mset(next_x,next_y,192)
+	end
 	if not fget(next_tile,0) then
 		player.x=next_x
 		player.y=next_y
