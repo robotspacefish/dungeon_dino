@@ -56,6 +56,10 @@ end
 player={
 	x=1,
 	y=3,
+	o_x=0,
+	o_y=0,
+	s_o_x=0,
+	s_o_y=0,
 	size=8,
 	walking=false,
 	anim_time=0,
@@ -69,7 +73,7 @@ player={
 
 ------- player.draw --------------
 player.draw=function()
-		spr(getframe(player.sprites,player.direction),player.x*8,player.y*8,1,1,player.flip)
+		spr(getframe(player.sprites,player.direction),player.x*8+player.o_x,player.y*8+player.o_y,1,1,player.flip)
 end
 
 ------- player.update --------------
@@ -80,7 +84,6 @@ player.update=function()
 			local dir_x={-1,1,0,0} --movement amounts in each direction
 			local dir_y={0,0,-1,1} --l,r,u,d
 			-- player.walking=true --todo use for future animations
-
 			player.move(dir_x[i+1],dir_y[i+1])
 			player.direction=i --player is facing l=0,r=1,u=2,d=3
 			if dir_x[i+1]<0 then player.flip=true else player.flip=false end
@@ -524,4 +527,3 @@ __music__
 00 00000000
 00 00000000
 00 00000000
-
