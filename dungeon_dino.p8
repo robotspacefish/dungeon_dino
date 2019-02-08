@@ -29,7 +29,7 @@ end--init
 function _update60()
 	t+=1
 	player.update()
-
+	
 	vases_left=#vases
 end--_update()
 
@@ -46,9 +46,6 @@ function _draw()
 		print(current_tile.x..","..current_tile.y,10,10,7)
 	end
 
-	if is_vase_at_player_loc() then
-		print("vase",40,10,7)
-	end
 	print(vases_left,80,10,7)
 	-- ======= end delete when done ===============
 end--_draw()
@@ -232,9 +229,9 @@ function place_room_items()
 	local v_total=#vases
 end
 
-function is_vase_at_player_loc()
-	for v in all(vases) do
-		if v.x==current_tile.x and v.y==current_tile.y then
+function is_item_at_player_loc(obj)
+	for i in all(obj) do
+		if obj.x==current_tile.x and v.y==current_tile.y then
 			return true
 		end
 	end
