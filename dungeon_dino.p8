@@ -207,17 +207,6 @@ function get_map_layout()
 	return room_map
 end
 
-function find_num_of_vases()
-	--looks through room_layout and adds each vase to a vase count
-	local v=0
-	for t in all(room_layout) do
-		if t.spr==204 or t.spr==220 then
-			v+=1
-		end
-	end
-	return v
-end
-
 function init_vases_for_items()
 	local vase={}
 	for t in all(room_layout) do
