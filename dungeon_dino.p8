@@ -22,8 +22,10 @@ function _init()
 	current_room=rooms.r1
 	room_layout=get_map_layout()
 	vases=init_vases_for_items() -- find how many vases are in the room
-
-	jewel_spr={69,85,101,117}
+	place_room_items()
+	bomb_spr=70
+	key_spr=67
+	gem_spr={69,85,101,117}
 end--init
 
 function _update60()
@@ -71,7 +73,7 @@ player={
 	flp=false,
 	direction=0,
 	keys=0,
-	jewels=0,
+	gems=0,
 	health={health_spr.full,health_spr.full,health_spr.full}
 }
 
@@ -147,6 +149,9 @@ function handle_item_collision(next_x,next_y,next_tile)
 		elseif next_tile==220 then
 			sfx(2)
 		end
+
+		check_vase_item(next_x,next_y)
+
 		--remove vase from map
 		mset(next_x,next_y,192)
 		--remove vase from vases table
@@ -198,10 +203,10 @@ function ui()
 	spr(key_spr,x,b_y-2)
 	print(":"..player.keys,x+7,b_y)
 
-	--jewels display
+	--gems display
 	local j_x=102
-	spr(jewel_spr[1],j_x,b_y-2)
-	print(":"..player.jewels,j_x+9,b_y)
+	spr(gem_spr[1],j_x,b_y-2)
+	print(":"..player.gems,j_x+9,b_y)
 end
 
 -->8
@@ -238,9 +243,9 @@ function init_vases_for_items()
 			v.x=t.x
 			v.y=t.y
 			v.spr=t.spr
-			v.bombs=0
-			v.health=0
-			v.jewels=0
+			v.bomb=false
+			v.health=false
+			v.gem=false
 			v.item=""
 			add(vase,v)
 		end
@@ -251,17 +256,57 @@ end
 function place_room_items()
 	local b=3 --# of bombs hidden in each room
 	local h=1 --# of health hidden
-	local j=math.floor(#vases-b-h) --# of jewels hidden
-	local v_total=#vases
-end
-
-function is_item_at_player_loc(obj)
-	for i in all(obj) do
-		if obj.x==player.x and v.y==player.y then
-			return true
+	local g=flr(#vases-b-h) --# of gems hidden
+	-- for t in all(room_layout) do
+	for v in all(vases) do
+		local random=flr(rnd(3))
+		if random==0 then --place bomb
+			if b>0 then
+				v.bomb=true
+				b-=1
+				-- mset(v.x,v.y,70)
+			else
+				--place gem instead
+				v.gem=true
+				-- mset(v.x,v.y,69)
+			end
+		elseif random==1 then --place health
+			if h>0 then
+				v.health=true
+				h-=1
+				-- mset(v.x,v.y,64)
+			else
+				v.gem=true
+			end
+		else --place health
+			v.gem=true
+			-- mset(v.x,v.y,69)
 		end
 	end
-	return false
+end
+
+-- function is_item_at_player_loc(obj)
+-- 	for i in all(obj) do
+-- 		if obj.x==player.x and v.y==player.y then
+-- 			return true
+-- 		end
+-- 	end
+-- 	return false
+-- end
+
+function check_vase_item(x,y)
+	for v in all(vases) do
+		if v.x==x and v.y==y then
+			if v.bomb then
+				del(player.health,health_spr.full)
+				add(player.health,health_spr.empty)
+			elseif v.health and #player.health<3 then
+				add(player.health,health_spr.full)
+			elseif v.gem then
+				player.gems+=1
+			end
+		end
+	end
 end
 
 __gfx__
@@ -552,4 +597,3 @@ __music__
 00 00000000
 00 00000000
 00 00000000
-
