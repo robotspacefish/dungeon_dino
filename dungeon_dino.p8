@@ -16,6 +16,9 @@ function _init()
 			keys=2,
 			name="entrance",
 			number=1,
+			gems=0,
+			max_health=1,
+			max_bombs=3
 		}
 	}
 
@@ -257,12 +260,11 @@ function init_vases_for_items()
 end
 
 function place_room_items()
-	local b=3 --# of bombs hidden in each room
-	local h=1 --# of health hidden
-	local g=flr(#vases-b-h) --# of gems hidden
+	local b=current_room.max_bombs --# of bombs hidden in each room
+	local h=current_room.max_health --# of health hidden
 	-- for t in all(room_layout) do
 	for v in all(vases) do
-		local random=flr(rnd(3))
+		local random=flr(rnd(4))
 		if random==0 then --place bomb
 			if b>0 then
 				v.bomb=true
@@ -271,6 +273,7 @@ function place_room_items()
 			else
 				--place gem instead
 				v.gem=true
+				current_room.gems+=1
 				-- mset(v.x,v.y,69)
 			end
 		elseif random==1 then --place health
@@ -280,9 +283,11 @@ function place_room_items()
 				-- mset(v.x,v.y,64)
 			else
 				v.gem=true
+				current_room.gems+=1
 			end
-		else --place health
+		elseif random==2 then
 			v.gem=true
+			current_room.gems+=1
 			-- mset(v.x,v.y,69)
 		end
 	end
@@ -308,6 +313,7 @@ function check_vase_item(x,y)
 			elseif v.gem then
 				sfx(3)
 				player.gems+=1
+				current_room.gems-=1
 			end
 		end
 	end
