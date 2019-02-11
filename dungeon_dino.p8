@@ -56,8 +56,9 @@ end
 
 debug=false
 function display_debug()
-		print(player.x..","..player.y,10,10,7)
-		print(vases_left,80,10,7)
+		-- print(player.x..","..player.y,10,10,7)
+		-- print(vases_left,80,10,7)
+		print("gems left:"..current_room.gems,80,10,7)
 end
 -->8
 --====== player ======================================
@@ -203,16 +204,20 @@ function ui()
 	local location=current_room.name
 	print(location, (128/2)-(#location)-8,6,7)
 
+	-- gems remaining
+	spr(69,80,5)
+	print("left:"..current_room.gems,90,6,7)
+
 	-- ======= bottom =======
 	-- keys display
 	local b_y=14*8+4
 	spr(key_spr,x,b_y-2)
-	print(":"..player.keys,x+7,b_y)
+	print(":"..player.keys,x+7,b_y,7)
 
 	--gems display
 	local j_x=102
 	spr(gem_spr[1],j_x,b_y-2)
-	print(":"..player.gems,j_x+9,b_y)
+	print(":"..player.gems,j_x+9,b_y,7)
 end
 
 -->8
