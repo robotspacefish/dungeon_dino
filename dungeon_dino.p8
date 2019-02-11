@@ -43,7 +43,7 @@ function _draw()
 	ui()
 
 	-- ======= debug delete when done and uncomment ui() ===============
-	-- print(player.x..","..player.y,10,10,7)
+	print(player.x..","..player.y,10,10,7)
 	-- print(vases_left,80,10,7)
 	-- ======= end delete when done ===============
 end--_draw()
@@ -82,15 +82,31 @@ end
 player.update=function()
 	-- player.walking=false --todo use for future animations
 	for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
+		local dir_x={-1,1,0,0} --movement amounts in each direction
+		local dir_y={0,0,-1,1} --l,r,u,d
 		if btnp(i) and i<=3 then
-			local dir_x={-1,1,0,0} --movement amounts in each direction
-			local dir_y={0,0,-1,1} --l,r,u,d
+			-- local dir_x={-1,1,0,0} --movement amounts in each direction
+			-- local dir_y={0,0,-1,1} --l,r,u,d
 			-- player.walking=true --todo use for future animations
 			player.move(dir_x[i+1],dir_y[i+1])
 			player.direction=i --player is facing l=0,r=1,u=2,d=3
 			if dir_x[i+1]<0 then player.flip=true else player.flip=false end
 		elseif btnp(i) and i==5 then
 			sfx(6)
+			--todo refactor
+			local dx,dy=0,0
+			if player.direction==0 then
+				dx=-1 dy=0
+			elseif player.direction==1 then
+				dx=1 dy=0
+			elseif player.direction==2 then
+				dx=0 dy=-1
+			elseif player.direction==3 then
+				dx=0 dy=1
+			end
+			local next_x,next_y=player.x+dx,player.y+dy
+			local next_tile=mget(next_x,next_y)
+			handle_item_collision(next_x,next_y,next_tile)
 		end
 	end
 end
@@ -109,7 +125,7 @@ player.move=function(dir_x,dir_y)
 		--todo respond to walls/locked doors
 		-- sfx(0)
 	end
-		handle_item_collision(next_x,next_y,next_tile)
+		-- handle_item_collision(next_x,next_y,next_tile)
 end
 
 -->8
@@ -122,7 +138,7 @@ end
 function handle_item_collision(next_x,next_y,next_tile)
 	--vase
 	if is_collision(next_tile,1) then
-	if next_tile==204 then
+		if next_tile==204 then
 			sfx(1)
 		elseif next_tile==220 then
 			sfx(2)
@@ -374,7 +390,7 @@ __gfx__
 000000006606606020222020666666602222222000000000000000000000000000000000000000000000000000000000000000004440404099909090eee0e0e0
 __gff__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010101010000000000000002000105000101010101010100000000028100000001010101010101010101000081000000010101010000000000000000810000
+0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010101010000000000000003000105000101010101010100000000038100000001010101010101010101000081000000010101010000000000000000810000
 __map__
 c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
