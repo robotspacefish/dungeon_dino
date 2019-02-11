@@ -81,14 +81,16 @@ end
 ------- player.update --------------
 player.update=function()
 	-- player.walking=false --todo use for future animations
-	for i=0,3 do --btn 0=l,1=r,2=u,3=d
-		if btnp(i) then
+	for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
+		if btnp(i) and i<=3 then
 			local dir_x={-1,1,0,0} --movement amounts in each direction
 			local dir_y={0,0,-1,1} --l,r,u,d
 			-- player.walking=true --todo use for future animations
 			player.move(dir_x[i+1],dir_y[i+1])
 			player.direction=i --player is facing l=0,r=1,u=2,d=3
 			if dir_x[i+1]<0 then player.flip=true else player.flip=false end
+		elseif btnp(i) and i==5 then
+			sfx(6)
 		end
 	end
 end
