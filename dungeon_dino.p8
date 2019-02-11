@@ -117,6 +117,7 @@ player.update=function()
 	end
 end
 
+obstacle_counter=0
 ------- player.move --------------
 player.move=function(dir_x,dir_y)
 	local next_x,next_y=player.x+dir_x,player.y+dir_y
@@ -127,9 +128,10 @@ player.move=function(dir_x,dir_y)
 		sfx(0)
 		player.x=next_x
 		player.y=next_y
+		obstacle_counter=0
 	else
-		--todo respond to walls/locked doors
-		-- sfx(0)
+		obstacle_counter+=1
+		if obstacle_counter>=2 then sfx(6) end
 	end
 		-- handle_item_collision(next_x,next_y,next_tile)
 end
