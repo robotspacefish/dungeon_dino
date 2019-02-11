@@ -14,7 +14,7 @@ function _init()
 			x=0,
 			y=0,
 			keys=2,
-			name="entrance",
+			name="r-1",
 			number=1,
 			gems=0,
 			max_health=1,
