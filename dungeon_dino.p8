@@ -42,16 +42,18 @@ function _draw()
 
 	ui()
 
-	-- ======= debug delete when done and uncomment ui() ===============
-	print(player.x..","..player.y,10,10,7)
-	-- print(vases_left,80,10,7)
-	-- ======= end delete when done ===============
+	if debug then display_debug() end
 end--_draw()
 
 function draw_room(x,y)
 	map(x,y)
 end
 
+debug=false
+function display_debug()
+		print(player.x..","..player.y,10,10,7)
+		print(vases_left,80,10,7)
+end
 -->8
 --====== player ======================================
 player={
@@ -91,6 +93,8 @@ player.update=function()
 			player.move(dir_x[i+1],dir_y[i+1])
 			player.direction=i --player is facing l=0,r=1,u=2,d=3
 			if dir_x[i+1]<0 then player.flip=true else player.flip=false end
+		elseif btnp(i) and i==4 then
+			if debug then debug=false else debug=true end
 		elseif btnp(i) and i==5 then
 			sfx(6)
 			--todo refactor
