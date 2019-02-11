@@ -2,15 +2,13 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 
+health_spr={
+	full=64,
+	empty=66
+}
+
 function _init()
 	t=0 -- keep track of frames as update runs
-	--health sprites --todo make local in ui?
-	health={
-		full=64,
-		half=65,
-		empty=66
-	}
-
 	rooms={
 		r1={
 			x=0,
@@ -71,7 +69,8 @@ player={
 	flp=false,
 	direction=0,
 	keys=0,
-	jewels=0
+	jewels=0,
+	health={health_spr.full,health_spr.full,health_spr.full}
 }
 
 ------- player.draw --------------
@@ -160,12 +159,13 @@ end
 function ui()
 	local x=4
 	local key_spr=67
-	local jewel_spr=69
 	-- ======= top =======
-	--example health
-	spr(health.full,x,4)
-	spr(health.half,x+9,4)
-	spr(health.empty,x+18,4)
+	-- health sprites
+		local add_to_x=0
+		for s in all(player.health) do
+			spr(s,x+add_to_x,4)
+			add_to_x+=10
+		end
 
 	local location=current_room.name
 	print(location, (128/2)-(#location)-8,6,7)
@@ -178,7 +178,7 @@ function ui()
 
 	--jewels display
 	local j_x=102
-	spr(jewel_spr,j_x,b_y-2)
+	spr(jewel_spr[1],j_x,b_y-2)
 	print(":"..player.jewels,j_x+9,b_y)
 end
 
@@ -530,4 +530,3 @@ __music__
 00 00000000
 00 00000000
 00 00000000
-
