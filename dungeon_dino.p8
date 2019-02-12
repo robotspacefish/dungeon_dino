@@ -9,20 +9,30 @@ health_spr={
 
 function _init()
 	t=0 -- keep track of frames as update runs
-	rooms={
-		r1={
+	rooms={{
 			x=0,
 			y=0,
+			start_x=1,
+			start_y=3,
 			keys=2,
 			name="r-1",
 			number=1,
 			gems=0,
 			max_health=1,
 			max_bombs=3
+		},{
+			x=16,
+			y=0,
+			keys=2,
+			name="r-2",
+			number=2,
+			gems=0,
+			max_health=1,
+			max_bombs=3
 		}
 	}
 
-	current_room=rooms.r1
+	current_room=rooms[1]
 	room_layout=get_map_layout()
 	vases=init_vases_for_items() -- find how many vases are in the room
 	place_room_items()
@@ -41,7 +51,6 @@ end--_update()
 function _draw()
 	cls()
 	palt(0,false)
-
 	draw_room(current_room.x,current_room.y)
 	player.draw()
 
@@ -58,7 +67,8 @@ debug=false
 function display_debug()
 		-- print(player.x..","..player.y,10,10,7)
 		-- print(vases_left,80,10,7)
-		print("gems left:"..current_room.gems,80,10,7)
+		-- print("gems left:"..current_room.gems,80,10,7)
+		print(current_room.number,40,10,7)
 end
 -->8
 --====== player ======================================
