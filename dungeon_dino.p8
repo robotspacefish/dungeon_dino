@@ -67,10 +67,9 @@ end--_update()
 function _draw()
 	cls()
 	palt(0,false)
-	-- draw_room(current_room.x,current_room.y)
-	map(current_room.x,current_room.y)
+	map()
+	camera(current_room.x*8,current_room.y*8)
 	player.draw()
-
 	ui()
 
 	if debug then display_debug() end
