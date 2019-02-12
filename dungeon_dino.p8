@@ -338,6 +338,7 @@ function check_vase_item(x,y)
 				sfx(3)
 				player.gems+=1
 				current_room.gems-=1
+				if current_room.gems<0 then current_room.gems=0 end
 			end
 		end
 	end
