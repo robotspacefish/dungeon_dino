@@ -8,7 +8,7 @@ health_spr={
 }
 
 function _init()
-	t=0 -- keep track of frames as update runs
+	framecounter=0 -- keep track of frames as update runs
 	rooms={{
 			x=0,
 			y=0,
@@ -42,7 +42,7 @@ function _init()
 end--init
 
 function _update60()
-	t+=1
+	framecounter+=1
 	player.update()
 
 	vases_left=#vases
@@ -244,7 +244,7 @@ function getframe(anim,direction)
 		-- direction+1 because lua tables start at 1 and the directions start at 0
 			local frameset=anim[direction+1]
 		--todo if player isn't walking, show first frame of direction spr only
-		return frameset[flr(t/11)%#frameset+1]
+		return frameset[flr(framecounter/11)%#frameset+1]
 end
 
 function get_map_layout()
@@ -630,4 +630,3 @@ __music__
 00 00000000
 00 00000000
 00 00000000
-
