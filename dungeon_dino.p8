@@ -15,7 +15,6 @@ function _init()
 			y=0,
 			start_x=1,
 			start_y=3,
-			-- keys=2,
 			name="r-1",
 			number=1,
 			gems=0,
@@ -26,9 +25,19 @@ function _init()
 			y=0,
 			start_x=17,
 			start_y=3,
-			-- keys=2,
 			name="r-2",
 			number=2,
+			gems=0,
+			max_health=1,
+			max_bombs=3
+		},
+		{
+			x=32,
+			y=0,
+			start_x=33,
+			start_y=3,
+			name="r-3 ",
+			number=3,
 			gems=0,
 			max_health=1,
 			max_bombs=3
@@ -71,7 +80,6 @@ function _draw()
 	camera(current_room.x*8,current_room.y*8)
 	player.draw()
 	ui()
-
 	if debug then display_debug() end
 end--_draw()
 
