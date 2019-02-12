@@ -201,6 +201,7 @@ function handle_item_collision(next_x,next_y,next_tile)
 	--goal door
 	if is_collision(next_tile,3) and player.master_key==1 then
 		current_room=rooms[current_room.number+1]
+		player.master_key=0
 	end
 end
 
