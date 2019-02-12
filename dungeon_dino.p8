@@ -82,10 +82,10 @@ end
 
 debug=false
 function display_debug()
-		print("p"..player.x..","..player.y,10,10,7)
-		-- print(vases_left,80,10,7)
+		print(player.x..","..player.y,0,10,7)
+		print(vases_left,40,10,7)
 		-- print("gems left:"..current_room.gems,80,10,7)
-		print("cr:"..current_room.x..","..current_room.y,40,10,7)
+		print(current_room.x..","..current_room.y,20,10,7)
 		print("mode:"..mode,80,10,7)
 end
 -->8
