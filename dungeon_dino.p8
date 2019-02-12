@@ -37,7 +37,7 @@ function _init()
 			start_x=33,
 			start_y=3,
 			name="r-3 ",
-			number=3,
+			number=3   ,
 			gems=0,
 			max_health=1,
 			max_bombs=3
@@ -232,7 +232,7 @@ end
 -->8
 --===== ui functions ======================================
 function ui()
-	local x=4
+	local x=current_room.x*8+4
 	local key_spr=67
 	local master_key_spr=83
 	-- ======= top =======
@@ -244,11 +244,11 @@ function ui()
 		end
 
 	local location=current_room.name
-	print(location, (128/2)-(#location)-8,6,7)
+	print(location,(current_room.x*8+64)-(#location/2)-8,6,7)
 
 	-- gems remaining
-	spr(69,80,5)
-	print("left:"..current_room.gems,90,6,7)
+	spr(69,x+80,5)
+	print("left:"..current_room.gems,x+90,6,7)
 
 	-- ======= bottom =======
 	-- keys display
@@ -258,7 +258,7 @@ function ui()
 	spr(master_key_spr,x+20,b_y-2)
 	print(":"..player.master_key,x+27,b_y,7)
 	--gems display
-	local j_x=102
+	local j_x=x+102
 	spr(gem_spr[1],j_x,b_y-2)
 	print(":"..player.gems,j_x+9,b_y,7)
 end
