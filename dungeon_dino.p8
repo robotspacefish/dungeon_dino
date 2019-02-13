@@ -44,14 +44,14 @@ function _init()
 		}
 	}
 	current_room=nil
-	mode="setup_next_room"
+	mode="setup_room"
 	bomb_spr=70
 	key_spr=67
 	gem_spr={69,85,101,117}
 end--init
 
 function _update60()
-	if mode=="setup_next_room" then
+	if mode=="setup_room" then
 		--set up next room
 		if current_room==nil then
 			setup_room(rooms[1])
@@ -225,7 +225,7 @@ function handle_item_collision(next_x,next_y,next_tile)
 
 	--goal door
 	if is_collision(next_tile,3) and player.master_key==1 then
-		mode="setup_next_room"
+		mode="setup_room"
 	end
 end
 
