@@ -121,7 +121,6 @@ player={
 	keys=0,
 	master_key=1,
 	gems=0,
-	-- health={health_spr.full,health_spr.full,health_spr.full}
 	health=3
 }
 
@@ -132,21 +131,16 @@ end
 
 ------- player.update --------------
 player.update=function()
-	-- player.walking=false --todo use for future animations
 	for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
 		local dir_x={-1,1,0,0} --movement amounts in each direction
 		local dir_y={0,0,-1,1} --l,r,u,d
 		if btnp(i) and i<=3 then
-			-- local dir_x={-1,1,0,0} --movement amounts in each direction
-			-- local dir_y={0,0,-1,1} --l,r,u,d
-			-- player.walking=true --todo use for future animations
 			player.move(dir_x[i+1],dir_y[i+1])
 			player.direction=i --player is facing l=0,r=1,u=2,d=3
 			if dir_x[i+1]<0 then player.flip=true else player.flip=false end
 		elseif btnp(i) and i==4 then
 			if debug then debug=false else debug=true end
 		elseif btnp(i) and i==5 then
-			--add sfx
 			--todo refactor
 			local dx,dy=0,0
 			if player.direction==0 then
@@ -181,7 +175,6 @@ player.move=function(dir_x,dir_y)
 		obstacle_counter+=1
 		if obstacle_counter>=2 then sfx(6) end
 	end
-		-- handle_item_collision(next_x,next_y,next_tile)
 end
 
 -->8
@@ -201,7 +194,6 @@ function handle_item_collision(next_x,next_y,next_tile)
 		end
 
 		check_vase_item(next_x,next_y)
-
 		--remove vase from map
 		mset(next_x,next_y,192)
 		--remove vase from vases table
@@ -214,7 +206,6 @@ function handle_item_collision(next_x,next_y,next_tile)
 
 	--chest contaning key
 	if is_collision(next_tile,2) then
-		-- sfx(3,-1,3)
 		sfx(5)
 		player.keys+=1
 		--change chest sprite
@@ -246,10 +237,6 @@ function ui()
 	-- ======= top =======
 	-- health sprites
 		local add_to_x=0
-		-- for s in all(player.health) do
-		-- 	spr(s,x+add_to_x,4)
-		-- 	add_to_x+=10
-		-- end
 		--todo refactor this disaster
 	local total_full=0
 	local total_empty=0
@@ -301,7 +288,6 @@ end
 function getframe(anim,direction)
 		-- direction+1 because lua tables start at 1 and the directions start at 0
 			local frameset=anim[direction+1]
-		--todo if player isn't walking, show first frame of direction spr only
 		return frameset[flr(framecounter/11)%#frameset+1]
 end
 
@@ -341,7 +327,6 @@ end
 function place_room_items()
 	local b=current_room.max_bombs --# of bombs hidden in each room
 	local h=current_room.max_health --# of health hidden
-	-- for t in all(room_layout) do
 	for v in all(vases) do
 		local random=flr(rnd(4))
 		if random==0 then --place bomb
@@ -385,15 +370,11 @@ function check_vase_item(x,y)
 	for v in all(vases) do
 		if v.x==x and v.y==y then
 			if v.bomb then
-				-- del(player.health,health_spr.full)
-				-- add(player.health,health_spr.empty)
 				if player.health>0 then
 					player.health-=1
 				end
 				if player.health==0 then mode="game_over" end
-			-- elseif v.health and #player.health<3 then
 			elseif v.health and player.health<3 then
-				-- add(player.health,health_spr.full)
 				player.health+=1
 			elseif v.gem then
 				sfx(3)
@@ -425,7 +406,7 @@ function reset_game()
 	player.gems=0
 	player.keys=0
 	player.health=3
-	player.master_key=1 --todo set to 0
+	player.master_key=0
 	--set player start position
 	player.x=current_room.start_x
 	player.y=current_room.start_y
@@ -723,4 +704,3 @@ __music__
 00 00000000
 00 00000000
 00 00000000
-
