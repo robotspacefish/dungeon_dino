@@ -18,6 +18,8 @@ function _init()
 			name="r-1",
 			number=1,
 			gems=0,
+			gems_collected=0,
+			min_gems_needed=0,
 			max_health=1,
 			max_bombs=3
 		},{
@@ -28,6 +30,8 @@ function _init()
 			name="r-2",
 			number=2,
 			gems=0,
+			gems_collected=0,
+			min_gems_needed=0,
 			max_health=1,
 			max_bombs=3
 		},
@@ -39,6 +43,8 @@ function _init()
 			name="r-3 ",
 			number=3   ,
 			gems=0,
+			gems_collected=0,
+			min_gems_needed=0,
 			max_health=2,
 			max_bombs=4
 		}
@@ -59,7 +65,7 @@ function _update60()
 			setup_room(rooms[current_room.number+1])
 		end
 		--reset master key
-		player.master_key=1 --todo set to 0
+		player.master_key=0
 		--set player start position
 		player.x=current_room.start_x
 		player.y=current_room.start_y
@@ -119,7 +125,7 @@ player={
 	flp=false,
 	direction=0,
 	keys=0,
-	master_key=1,
+	master_key=0,
 	gems=0,
 	health=3
 }
@@ -157,6 +163,8 @@ player.update=function()
 			handle_item_collision(next_x,next_y,next_tile)
 		end
 	end
+
+	if current_room.gems_collected==current_room.min_gems_needed then player.master_key=1 end
 end
 
 obstacle_counter=0
@@ -380,6 +388,7 @@ function check_vase_item(x,y)
 				sfx(3)
 				player.gems+=1
 				current_room.gems-=1
+				current_room.gems_collected+=1
 				if current_room.gems<0 then current_room.gems=0 end
 			end
 		end
@@ -391,6 +400,7 @@ function setup_room(room)
 	room_layout=get_map_layout()
 	vases=init_vases_for_items() -- find how many vases are in the room
 	place_room_items()
+	current_room.min_gems_needed=flr(current_room.gems/2)
 end
 
 function game_over()
