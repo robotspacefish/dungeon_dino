@@ -69,6 +69,9 @@ function _update60()
 		framecounter+=1
 		player.update()
 		vases_left=#vases
+	elseif mode=="reset_game" then
+		reset_game()
+		mode="game"
 	end
 
 end--_update()
@@ -76,11 +79,15 @@ end--_update()
 function _draw()
 	cls()
 	palt(0,false)
-	map()
-	camera(current_room.x*8,current_room.y*8)
-	player.draw()
-	ui()
-	if debug then display_debug() end
+	-- if debug then display_debug() end
+	if mode=="game" then
+		map()
+		camera(current_room.x*8,current_room.y*8)
+		player.draw()
+		ui()
+	elseif mode=="game_over" then
+		game_over()
+	end
 end--_draw()
 
 function draw_room(x,y)
@@ -114,7 +121,8 @@ player={
 	keys=0,
 	master_key=1,
 	gems=0,
-	health={health_spr.full,health_spr.full,health_spr.full}
+	-- health={health_spr.full,health_spr.full,health_spr.full}
+	health=3
 }
 
 ------- player.draw --------------
@@ -382,6 +390,7 @@ function check_vase_item(x,y)
 				if player.health>0 then
 					player.health-=1
 				end
+				if player.health==0 then mode="game_over" end
 			-- elseif v.health and #player.health<3 then
 			elseif v.health and player.health<3 then
 				-- add(player.health,health_spr.full)
@@ -714,3 +723,4 @@ __music__
 00 00000000
 00 00000000
 00 00000000
+
