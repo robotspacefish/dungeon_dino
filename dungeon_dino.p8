@@ -238,10 +238,35 @@ function ui()
 	-- ======= top =======
 	-- health sprites
 		local add_to_x=0
-		for s in all(player.health) do
-			spr(s,x+add_to_x,4)
-			add_to_x+=10
-		end
+		-- for s in all(player.health) do
+		-- 	spr(s,x+add_to_x,4)
+		-- 	add_to_x+=10
+		-- end
+		--todo refactor this disaster
+	local total_full=0
+	local total_empty=0
+	local h=player.health
+	if h==3 then
+		total_full=3
+		total_empty=0
+	elseif h==2 then
+		total_full=2
+		total_empty=1
+	elseif h==1 then
+		total_full=1
+		total_empty=2
+	elseif h==0 then
+		total_full=0
+		total_empty=3
+	end
+	for i=1,total_full do
+		spr(health_spr.full,x+add_to_x,4)
+		add_to_x+=10
+	end
+	for i=1,total_empty do
+		spr(health_spr.empty,x+add_to_x,4)
+		add_to_x+=10
+	end
 
 	local location=current_room.name
 	print(location,(current_room.x*8+64)-(#location/2)-8,6,7)
@@ -352,10 +377,15 @@ function check_vase_item(x,y)
 	for v in all(vases) do
 		if v.x==x and v.y==y then
 			if v.bomb then
-				del(player.health,health_spr.full)
-				add(player.health,health_spr.empty)
-			elseif v.health and #player.health<3 then
-				add(player.health,health_spr.full)
+				-- del(player.health,health_spr.full)
+				-- add(player.health,health_spr.empty)
+				if player.health>0 then
+					player.health-=1
+				end
+			-- elseif v.health and #player.health<3 then
+			elseif v.health and player.health<3 then
+				-- add(player.health,health_spr.full)
+				player.health+=1
 			elseif v.gem then
 				sfx(3)
 				player.gems+=1
