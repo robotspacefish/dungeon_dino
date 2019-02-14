@@ -50,7 +50,6 @@ function _init()
 	}
 	current_room={}
 	current_room_map=nil
-	-- mode="setup_room"
 	setup_room(rooms[1])
 	bomb_spr=70
 	key_spr=67
@@ -59,12 +58,7 @@ end--init
 
 function _update60()
 	if mode=="setup_room" then
-		--set up next room
-		-- if current_room=={} then
-		-- 	setup_room(rooms[1])
-		-- else
 			setup_room(rooms[current_room.number+1])
-		-- end
 		--reset keys for next room
 		player.master_key=0
 		player.keys=0
@@ -92,24 +86,16 @@ function _draw()
 		camera(current_room.x*8,current_room.y*8)
 		player.draw()
 		ui()
-		display_debug()
+
+		display_debug("vases left:"..vases_left,0,0,7)
+
 	elseif mode=="game_over" then
 		game_over()
 	end
 end--_draw()
 
-function draw_room(x,y)
-	map(x,y)
-end
-
-debug=false
-function display_debug()
-		-- print(player.x..","..player.y,0,10,7)
-		print(vases_left,0,0,7)
-		-- print("gems left:"..current_room.gems,00,10,7)
-		-- print("gems needed:"..current_room.min_gems_needed,60,10,7)
-		-- print(current_room.x..","..current_room.y,20,10,7)
-		-- print("mode:"..mode,80,10,7)
+function display_debug(msg,x,y,c)
+		print(msg,x,y,c)
 end
 -->8
 --====== player ======================================
@@ -172,7 +158,7 @@ player.update=function()
 	if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then player.master_key=1 end
 end
 
-obstacle_counter=0
+obstacle_counter=0 -- used for obstacle bump sound
 ------- player.move --------------
 player.move=function(dir_x,dir_y)
 	local next_x,next_y=player.x+dir_x,player.y+dir_y
