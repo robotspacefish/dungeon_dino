@@ -65,8 +65,8 @@ function _update60()
 		else
 			setup_room(rooms[current_room.number+1])
 		end
-		--reset master key
-		-- player.master_key=0
+		--reset keys for next room
+		player.master_key=0
 		player.keys=0
 		--set player start position
 		player.x=current_room.start_x
