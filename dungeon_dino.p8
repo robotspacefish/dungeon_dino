@@ -151,7 +151,9 @@ player.update=function()
 			player.direction=i --player is facing l=0,r=1,u=2,d=3
 			if dir_x[i+1]<0 then player.flip=true else player.flip=false end
 		elseif btnp(i) and i==4 then
-			-- if debug then debug=false else debug=true end
+			--debugging remove later
+			player.health-=1
+			if player.health==0 then mode="game_over" end
 		elseif btnp(i) and i==5 then
 			--todo refactor
 			local dx,dy=0,0
@@ -401,11 +403,16 @@ function check_vase_item(x,y)
 	end
 end
 
-function setup_room(room)
-	-- current_room=room
-	for k,v in pairs(room) do
-		current_room[k]=v
+function copy_table(ot)
+	local nt={}
+	for k,v in pairs(ot) do
+		nt[k]=v
 	end
+	return nt
+end
+
+function setup_room(room)
+	current_room=copy_table(room)
 	current_room_map=get_map_layout()
 	place_vases_in_room(current_room_map)
 	vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
@@ -414,7 +421,7 @@ function setup_room(room)
 end
 
 function place_vases_in_room(room)
-	local total_vases=flr(rnd(15))+15
+	local total_vases=flr(rnd(1))+6
 	local vase_types={204,220}
 	--todo init vases in here
 	for tile in all(room) do
@@ -423,10 +430,10 @@ function place_vases_in_room(room)
 			if r==0 then
 				tile.spr=vase_types[flr(rnd(2))+1]
 				mset(tile.x,tile.y,tile.spr)
-				-- total_vases-=1 --todo
+				total_vases-=1 --todo
 			end
 		end
-		-- if total_vases==0 then break end --todo
+		if total_vases==0 then break end --todo
 	end
 end
 
@@ -439,9 +446,6 @@ function game_over()
 end
 
 function reset_game()
-	-- for k,v in pairs(current_room) do
-	-- 	current_room[k]=nil
-	-- end
 	setup_room(rooms[1])
 	player.gems=0
 	player.keys=0
