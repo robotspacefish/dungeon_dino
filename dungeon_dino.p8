@@ -10,9 +10,10 @@ health_spr={64,65}
 lg_vase_spr={82,83,84,85}
 sm_vase_spr={98,99,100,101}
 chest_spr={112,113}
+flashcount=0
 
 function _init()
-	mode="game"
+	mode="title"
 	framecounter=0 -- keep track of frames as update runs
 	rooms={{
 			x=0,
@@ -54,10 +55,11 @@ function _init()
 	}
 	current_room={}
 	current_room_map=nil
-	setup_room(rooms[1])
 end--init
 
 function _update60()
+	if (mode=="title") upd_title()
+	if (mode=="instructions") upd_instructions()
 	if mode=="setup_room" then
 			setup_room(rooms[current_room.number+1])
 		--reset keys for next room
@@ -68,32 +70,63 @@ function _update60()
 		player.y=current_room.start_y
 		player.direction=0
 		mode="game"
-	elseif mode=="game" then
+	end
+	if mode=="game" then
 		framecounter+=1
 		player.update()
 		vases_left=#vases
-	elseif mode=="reset_game" then
-		reset_game()
-		mode="game"
 	end
-
+	if (mode=="reset_game") reset_game()
 end--_update()
+
+function start_game()
+	setup_room(rooms[1])
+	mode="game"
+end
+
+function upd_title()
+	if (btnp(4)) mode="instructions"
+	if (btnp(5)) start_game()
+end
+
+function upd_instructions()
+	if (btnp(5)) start_game()
+end
+
+function drw_instructions()
+	print("instructions",40,8,7)
+	print("todo", 55,40,8)
+	print("press ❎ to start",32,100,11)
+end
+
+function drw_game()
+		map()
+		camera(current_room.x*8,current_room.y*8)
+		player.draw()
+		ui()
+end
+
+function drw_title()
+	flashcount+=1
+	-- cls()
+	print("d u n g e o n  d i n o",21,40,3)
+	flash_txt("press ❎ to start",32,70,11)
+	print("press [z] for instructions",18,88,7)
+end
+
+function flash_txt(txt,x,y,col)
+  if(flashcount<25)print(txt,x,y,col)
+  if(flashcount > 50)flashcount=0
+end
 
 function _draw()
 	cls()
 	palt(0,false)
-	if mode=="game" then
-		map()
-		camera(current_room.x*8,current_room.y*8)
-		player.draw()
-
-		ui()
-
-		-- display_debug("vases left:"..vases_left,0,0,7)
-
-	elseif mode=="game_over" then
-		game_over()
-	end
+	if (mode=="title") drw_title()
+	if (mode=="instructions") drw_instructions()
+	if (mode=="game") drw_game()
+	if (mode=="game_over") game_over()
+			-- display_debug("vases left:"..vases_left,0,0,7)
 end--_draw()
 
 function display_debug(msg,x,y,c)
@@ -206,7 +239,9 @@ function handle_item_collision(next_x,next_y,next_tile)
 
 		check_vase_item(next_x,next_y)
 		--remove vase from map
-		mset(next_x,next_y,192)
+		-- mset(next_x,next_y,192)
+		--todo if heart then don't leave a smashed vase behind
+		mset(next_x,next_y,85)
 		--remove vase from vases table
 			for v in all(vases) do
 				if v.x==next_x and v.y==next_y then
@@ -468,6 +503,7 @@ function reset_game()
 	for d in all(current_room.locked_doors) do
 		mset(d.x,d.y,mget(d.x,d.y)-1)
 	end
+	mode="game"
 end
 
 __gfx__
