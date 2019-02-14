@@ -21,7 +21,9 @@ function _init()
 			gems_collected=0,
 			min_gems_needed=0,
 			max_health=1,
-			max_bombs=3
+			max_bombs=3,
+			chests={{x=3,y=9},{x=8,y=3},{x=14,y=3},{x=10,y=12}},
+			locked_doors={{x=7,y=6},{x=9,y=9},{x=12,y=7}}
 		},{
 			x=16,
 			y=0,
@@ -443,7 +445,14 @@ function reset_game()
 	player.y=current_room.start_y
 	player.direction=0
 
-	--todo reset room items
+	for c in all(current_room.chests) do
+		mset(c.x,c.y,207)
+	end
+
+	--reset locked doors
+	for d in all(current_room.locked_doors) do
+		mset(d.x,d.y,mget(d.x,d.y)-1)
+	end
 end
 
 __gfx__
