@@ -117,7 +117,8 @@ player={
 	keys=0,
 	master_key=0,
 	gems=0,
-	health=3
+	health=3,
+	heal=0
 }
 
 ------- player.draw --------------
@@ -136,8 +137,14 @@ player.update=function()
 			if dir_x[i+1]<0 then player.flip=true else player.flip=false end
 		elseif btnp(i) and i==4 then
 			--debugging remove later
-			player.health-=1
-			if player.health==0 then mode="game_over" end
+			-- player.health-=1
+			-- if player.health==0 then mode="game_over" end
+
+			--use healing item if possible
+			if player.health<3 and player.heal>0 then
+				player.health+=1
+				player.heal-=1
+			end
 		elseif btnp(i) and i==5 then
 			--todo refactor
 			local dx,dy=0,0
@@ -274,6 +281,10 @@ function ui()
 	print(":"..player.keys,x+7,b_y,7)
 	spr(master_key_spr,x+20,b_y-2)
 	print(":"..player.master_key,x+27,b_y,7)
+
+	--healing item display
+	spr(health_spr[1],x+40,b_y-2)
+	print(":"..player.heal,x+48,b_y,7)
 	--gems display
 	local j_x=x+102
 	spr(gem_spr[1],j_x,b_y-2)
@@ -380,8 +391,12 @@ function check_vase_item(x,y)
 					player.health-=1
 				end
 				if player.health==0 then mode="game_over" end
-			elseif v.health and player.health<3 then
-				player.health+=1
+			elseif v.health then
+				if player.health<3 then
+					player.health+=1
+				else
+					player.heal+=1
+				end
 			elseif v.gem then
 				sfx(3)
 				player.gems+=1
