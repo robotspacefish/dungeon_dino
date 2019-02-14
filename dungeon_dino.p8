@@ -51,9 +51,10 @@ function _init()
 			max_bombs=4
 		}
 	}
-	current_room=nil
+	current_room={}
 	current_room_map=nil
-	mode="setup_room"
+	-- mode="setup_room"
+	setup_room(rooms[1])
 	bomb_spr=70
 	key_spr=67
 	gem_spr={69,85,101,117}
@@ -62,11 +63,11 @@ end--init
 function _update60()
 	if mode=="setup_room" then
 		--set up next room
-		if current_room==nil then
-			setup_room(rooms[1])
-		else
+		-- if current_room=={} then
+		-- 	setup_room(rooms[1])
+		-- else
 			setup_room(rooms[current_room.number+1])
-		end
+		-- end
 		--reset keys for next room
 		player.master_key=0
 		player.keys=0
@@ -401,7 +402,10 @@ function check_vase_item(x,y)
 end
 
 function setup_room(room)
-	current_room=room
+	-- current_room=room
+	for k,v in pairs(room) do
+		current_room[k]=v
+	end
 	current_room_map=get_map_layout()
 	place_vases_in_room(current_room_map)
 	vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
@@ -435,6 +439,9 @@ function game_over()
 end
 
 function reset_game()
+	-- for k,v in pairs(current_room) do
+	-- 	current_room[k]=nil
+	-- end
 	setup_room(rooms[1])
 	player.gems=0
 	player.keys=0
