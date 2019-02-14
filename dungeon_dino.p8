@@ -86,10 +86,10 @@ function _draw()
 		map()
 		camera(current_room.x*8,current_room.y*8)
 		player.draw()
+
 		ui()
 
 		-- display_debug("vases left:"..vases_left,0,0,7)
-		display_debug(player.heal,0,0,7)
 
 	elseif mode=="game_over" then
 		game_over()
@@ -295,6 +295,16 @@ function ui()
 	print(":"..player.gems,j_x+9,b_y,7)
 end
 
+-->8
+--===== animations ============================================
+anims={
+	player_hit=function()
+		for i=0,15 do
+			pal(11,i)
+		end
+	 pal() -- reset colors
+	end
+}
 -->8
 --====== misc functions ======================================
 function getframe(anim,direction)
