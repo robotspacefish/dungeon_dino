@@ -50,6 +50,7 @@ function _init()
 		}
 	}
 	current_room=nil
+	current_room_map=nil
 	mode="setup_room"
 	bomb_spr=70
 	key_spr=67
@@ -66,6 +67,7 @@ function _update60()
 		end
 		--reset master key
 		-- player.master_key=0
+		player.keys=0
 		--set player start position
 		player.x=current_room.start_x
 		player.y=current_room.start_y
@@ -342,18 +344,18 @@ function place_room_items()
 			if b>0 then
 				v.bomb=true
 				b-=1
-				mset(v.x,v.y,70)
+				-- mset(v.x,v.y,70)
 			else
 				--place gem instead
 				v.gem=true
 				current_room.gems+=1
-				mset(v.x,v.y,69)
+				-- mset(v.x,v.y,69)
 			end
 		elseif random==1 then --place health
 			if h>0 then
 				v.health=true
 				h-=1
-				mset(v.x,v.y,64)
+				-- mset(v.x,v.y,64)
 			else
 				v.gem=true
 				current_room.gems+=1
@@ -361,7 +363,7 @@ function place_room_items()
 		elseif random==2 then
 			v.gem=true
 			current_room.gems+=1
-			mset(v.x,v.y,69)
+			-- mset(v.x,v.y,69)
 		end
 	end
 end
@@ -398,9 +400,9 @@ end
 
 function setup_room(room)
 	current_room=room
-	room_layout=get_map_layout()
-	place_vases_in_room(room_layout)
-	vases=init_vases_for_items(room_layout) -- find how many vases are in the room
+	current_room_map=get_map_layout()
+	place_vases_in_room(current_room_map)
+	vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
 	place_room_items()
 	current_room.min_gems_needed=flr(current_room.gems/2)
 end
@@ -409,12 +411,12 @@ function place_vases_in_room(room)
 	local total_vases=flr(rnd(15))+15
 	local vase_types={204,220}
 	--todo init vases in here
-	for t in all(room) do
-		if t.spr==192 or t.spr==208 then
+	for tile in all(room) do
+		if tile.spr==192 or tile.spr==208 then
 			local r=flr(rnd(5)) --if 0, place a vase, otherwise don't
 			if r==0 then
-				room[t]=vase_types[flr(rnd(2))+1]
-				mset(t.x,t.y,room[t])
+				tile.spr=vase_types[flr(rnd(2))+1]
+				mset(tile.x,tile.y,tile.spr)
 				-- total_vases-=1 --todo
 			end
 		end
