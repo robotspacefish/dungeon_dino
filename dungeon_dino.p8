@@ -44,7 +44,7 @@ function _init()
 			y=0,
 			start_x=33,
 			start_y=3,
-			number=3   ,
+			number=3,
 			gems=0,
 			gems_collected=0,
 			min_gems_needed=0,
@@ -88,7 +88,8 @@ function _draw()
 		player.draw()
 		ui()
 
-		display_debug("vases left:"..vases_left,0,0,7)
+		-- display_debug("vases left:"..vases_left,0,0,7)
+		display_debug(player.heal,0,0,7)
 
 	elseif mode=="game_over" then
 		game_over()
@@ -166,7 +167,7 @@ player.update=function()
 	if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then player.master_key=1 end
 end
 
-obstacle_counter=0 -- used for obstacle bump sound
+obstacle_counter=0
 ------- player.move --------------
 player.move=function(dir_x,dir_y)
 	local next_x,next_y=player.x+dir_x,player.y+dir_y
@@ -312,24 +313,6 @@ function get_map_layout()
 		end
 	end
 	return room_map
-end
-
-function init_vases_for_items(room)
-	local vase={}
-	for t in all(room) do
-		if t.spr==204 or t.spr==220 then
-			local v={}
-			v.x=t.x
-			v.y=t.y
-			v.spr=t.spr
-			v.bomb=false
-			v.health=false
-			v.gem=false
-			v.item=""
-			add(vase,v)
-		end
-	end
-	return vase
 end
 
 function place_room_items()
