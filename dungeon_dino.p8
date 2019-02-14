@@ -15,7 +15,6 @@ function _init()
 			y=0,
 			start_x=1,
 			start_y=3,
-			name="r-1",
 			number=1,
 			gems=0,
 			gems_collected=0,
@@ -29,7 +28,6 @@ function _init()
 			y=0,
 			start_x=17,
 			start_y=3,
-			name="r-2",
 			number=2,
 			gems=0,
 			gems_collected=0,
@@ -42,7 +40,6 @@ function _init()
 			y=0,
 			start_x=33,
 			start_y=3,
-			name="r-3 ",
 			number=3   ,
 			gems=0,
 			gems_collected=0,
@@ -279,7 +276,7 @@ function ui()
 		add_to_x+=10
 	end
 
-	local location=current_room.name
+	local location="r-"..current_room.number
 	print(location,(current_room.x*8+64)-(#location/2)-8,6,7)
 
 	-- gems remaining
