@@ -14,44 +14,6 @@ local chest_spr={112,113}
 local flashcount=0
 local framecounter=0 -- keep track of frames as update runs
 local obstacle_counter=0 -- used for obstacle bumping
--- local rooms={{
--- 		x=0,
--- 		y=0,
--- 		start_x=1,
--- 		start_y=3,
--- 		number=1,
--- 		gems=0,
--- 		gems_collected=0,
--- 		min_gems_needed=0,
--- 		max_health=1,
--- 		max_bombs=3,
--- 		chests={{x=3,y=9},{x=8,y=3},{x=14,y=3},{x=10,y=12}},
--- 		locked_doors={{x=7,y=6},{x=9,y=9},{x=12,y=7}}
--- 	},{
--- 		x=16,
--- 		y=0,
--- 		start_x=17,
--- 		start_y=3,
--- 		number=2,
--- 		gems=0,
--- 		gems_collected=0,
--- 		min_gems_needed=0,
--- 		max_health=1,
--- 		max_bombs=3
--- 	},
--- 	{
--- 		x=32,
--- 		y=0,
--- 		start_x=33,
--- 		start_y=3,
--- 		number=3,
--- 		gems=0,
--- 		gems_collected=0,
--- 		min_gems_needed=0,
--- 		max_health=2,
--- 		max_bombs=4
--- 	}
--- }
 local current_room
 local current_room_map=nil
 local player
