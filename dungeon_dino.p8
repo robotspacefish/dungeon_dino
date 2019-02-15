@@ -173,42 +173,43 @@ player={
 		spr(getframe(self.sprites,self.direction),self.x*8+self.o_x,self.y*8+self.o_y,1,1,self.flip)
 	end,
 	upd=function(self)
-			for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
-				local dir_x={-1,1,0,0} --movement amounts in each direction
-				local dir_y={0,0,-1,1} --l,r,u,d
-				if btnp(i) and i<=3 then
-					-- player.move(dir_x[i+1],dir_y[i+1])
-					self:move(dir_x[i+1],dir_y[i+1])
-					self.direction=i --player is facing l=0,r=1,u=2,d=3
-					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
-				elseif btnp(i) and i==4 then
-					--use healing item if possible
-					if self.health<3 and self.heal>0 then
-						sfx(8)
-						self.health+=1
-						self.heal-=1
-					else
-						sfx(9)
-					end
-				elseif btnp(i) and i==5 then
-					--todo refactor
-					local dx,dy=0,0
-					if self.direction==0 then
-						dx=-1 dy=0
-					elseif self.direction==1 then
-						dx=1 dy=0
-					elseif self.direction==2 then
-						dx=0 dy=-1
-					elseif self.direction==3 then
-						dx=0 dy=1
-					end
-					local next_x,next_y=self.x+dx,self.y+dy
-					local next_tile=mget(next_x,next_y)
-					handle_item_collision(next_x,next_y,next_tile)
+		local i
+		for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
+			local dir_x={-1,1,0,0} --movement amounts in each direction
+			local dir_y={0,0,-1,1} --l,r,u,d
+			if btnp(i) and i<=3 then
+				-- player.move(dir_x[i+1],dir_y[i+1])
+				self:move(dir_x[i+1],dir_y[i+1])
+				self.direction=i --player is facing l=0,r=1,u=2,d=3
+				if dir_x[i+1]<0 then self.flip=true else self.flip=false end
+			elseif btnp(i) and i==4 then
+				--use healing item if possible
+				if self.health<3 and self.heal>0 then
+					sfx(8)
+					self.health+=1
+					self.heal-=1
+				else
+					sfx(9)
 				end
+			elseif btnp(i) and i==5 then
+				--todo refactor
+				local dx,dy=0,0
+				if self.direction==0 then
+					dx=-1 dy=0
+				elseif self.direction==1 then
+					dx=1 dy=0
+				elseif self.direction==2 then
+					dx=0 dy=-1
+				elseif self.direction==3 then
+					dx=0 dy=1
+				end
+				local next_x,next_y=self.x+dx,self.y+dy
+				local next_tile=mget(next_x,next_y)
+				handle_item_collision(next_x,next_y,next_tile)
 			end
+		end
 
-			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
+		if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
 	end
 }
 
@@ -234,6 +235,7 @@ function handle_item_collision(next_x,next_y,next_tile)
 		--todo if heart then don't leave a smashed vase behind
 		mset(next_x,next_y,lg_vase_spr[4])
 		--remove vase from vases table
+		local v
 			for v in all(vases) do
 				if v.x==next_x and v.y==next_y then
 					del(vases,v)
@@ -288,6 +290,7 @@ function ui()
 		total_full=0
 		total_empty=3
 	end
+	local i
 	for i=1,total_full do
 		spr(health_spr[1],x+add_to_x,4)
 		add_to_x+=10
@@ -325,6 +328,7 @@ end
 --===== animations ============================================
 anims={
 	player_hit=function()
+		local i
 		for i=0,15 do
 			pal(11,i)
 		end
@@ -347,6 +351,7 @@ end
 function get_map_layout()
 	-- finds x,y, and sprite at each map tile location
 	local room_map={}
+	local x,y
 	for x=current_room.x,current_room.x+15 do
 		for y=current_room.y,current_room.y+15 do
 			local tile={}
@@ -371,6 +376,7 @@ end
 function place_room_items()
 	local b=current_room.max_bombs --# of bombs hidden in each room
 	local h=current_room.max_health --# of health hidden
+	local v
 	for v in all(vases) do
 		local random=flr(rnd(4))
 		if random==0 then --place bomb
@@ -403,6 +409,7 @@ end
 
 function init_vases_for_items(room)
 	local vase={}
+	local t
 	for t in all(room) do
 		if t.spr==sm_vase_spr[1] or t.spr==lg_vase_spr[1] then
 			local v={}
@@ -420,6 +427,7 @@ function init_vases_for_items(room)
 end
 
 function check_vase_item(x,y)
+	local v
 	for v in all(vases) do
 		if v.x==x and v.y==y then
 			if v.bomb then
@@ -451,6 +459,7 @@ function place_vases_in_room(room)
 	local total_vases=flr(rnd(1))+6
 	local vase_types={lg_vase_spr[1],sm_vase_spr[1]}
 	--todo init vases in here
+	local tile
 	for tile in all(room) do
 		if tile.spr==192 or tile.spr==208 then
 			local r=flr(rnd(5)) --if 0, place a vase, otherwise don't
@@ -483,11 +492,13 @@ function reset_game()
 	player.y=current_room.start_y
 	player.direction=0
 
+	local c
 	for c in all(current_room.chests) do
 		mset(c.x,c.y,chest_spr[2])
 	end
 
 	--reset locked doors
+	local d
 	for d in all(current_room.locked_doors) do
 		mset(d.x,d.y,mget(d.x,d.y)-1)
 	end
@@ -496,6 +507,7 @@ end
 
 function copy_table(ot)
 	local nt={}
+	local k,v
 	for k,v in pairs(ot) do
 		nt[k]=v
 	end
