@@ -2,6 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 --============= sprites ===============
+local floor_spr={192,208}
 local bomb_spr={70}
 local key_spr=80
 local heal_spr=115
@@ -88,6 +89,9 @@ function draw_game()
 			obj:draw()
 		end
 		ui()
+
+		--debug
+		print(#current_room.empty_tiles,0,0,8)
 end
 
 function draw_title()
@@ -267,27 +271,46 @@ function create_current_room(room)
 		gems=0,
 		gems_collected=0,
 		min_gems_needed=0,
-		get_layout=function()
-			local room_map={}
-			local x,y
-			for x=room.x,room.x+15 do
-				for y=room.y,room.y+15 do
-					local tile={}
-					tile.x=x
-					tile.y=y
-					tile.spr=mget(x,y)
-					add(room_map,tile)
-				end
-			end
-			return room_map
-		end
+		vases_left=0,
+		empty_tiles={},
+		layout={}
+			-- get_layout=function()
+		-- 	local room_map={}
+		-- 	local empty_tiles={}
+		-- 	local x,y
+		-- 	for x=room.x,room.x+15 do
+		-- 		for y=room.y,room.y+15 do
+		-- 			local tile={}
+		-- 			tile.x=x
+		-- 			tile.y=y
+		-- 			tile.spr=mget(x,y)
+		-- 			add(room_map,tile)
+		-- 		end
+		-- 	end
+		-- 	return room_map
+		-- end,
 	}
 	for k,v in pairs(room) do
 		obj[k]=v
 	end
 
-	obj.layout=obj.get_layout()
+	local room_map={}
+	local x,y
+	for x=room.x,room.x+15 do
+		for y=room.y,room.y+15 do
+			local tile={}
+			tile.x=x
+			tile.y=y
+			tile.spr=mget(x,y)
+			add(room_map,tile)
+			for f in all(floor_spr) do
+				if tile.spr==f then add(obj.empty_tiles,{tile.x,tile.y}) end
+			end
+		end
+	end
+	add(obj.layout,room_map)
 
+	-- obj.layout=obj.get_layout()
 	return obj
 end
 
@@ -400,38 +423,86 @@ function getframe(anim,direction)
 		return frameset[flr(framecounter/11)%#frameset+1]
 end
 
-function get_room_layout()
-	-- finds x,y, and sprite at each map tile location
-	local room_map={}
-	local x,y
-	for x=current_room.x,current_room.x+15 do
-		for y=current_room.y,current_room.y+15 do
-			local tile={}
-			tile.x=x
-			tile.y=y
-			tile.spr=mget(x,y)
-			add(room_map,tile)
-		end
-	end
-	return room_map
-end
+-- function get_room_layout()
+-- 	-- finds x,y, and sprite at each map tile location
+-- 	local room_map={}
+-- 	local x,y
+-- 	for x=current_room.x,current_room.x+15 do
+-- 		for y=current_room.y,current_room.y+15 do
+-- 			local tile={}
+-- 			tile.x=x
+-- 			tile.y=y
+-- 			tile.spr=mget(x,y)
+-- 			add(room_map,tile)
+-- 		end
+-- 	end
+-- 	return room_map
+-- end
 
+--====== setup room ==============
 function setup_room(room)
 	current_room=create_current_room(room)
-	-- current_room_map=get_room_layout()
-	place_vases_in_room(current_room.layout)
+	setup_room_items(current_room)
 	-- place_vases_in_room(current_room.layout)
 	-- vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
 	-- place_room_items()
 	current_room.min_gems_needed=flr(current_room.gems/2)
 end
 
+function create_bomb(x,y)
+	return create_game_object("bomb",x,y)
+end
+
+-- function get_empty_floor_tiles(c_room)
+-- 	local obj
+-- 	for spr in all(room.layout) do
+-- 		if spr==floor_spr[1] then
+-- 			add(obj,{spr.x,spr.y})
+-- 		end
+-- 	end
+-- 	return obj
+-- end
+
+function setup_vases(c_room)
+
+	--todo move vase stuff from setup_room_items
+end
+
+function setup_room_items(c_room)
+	--todo iterate over tiles randomly so vases are more spread around
+	-- empty_tiles=get_empty_floor_tiles(c_room)
+	--todo play with this min/max
+	local total_vases=flr(rnd(#c_room.empty_tiles/3))+#c_room.empty_tiles/2
+	local tile
+	for tile in all(c_room.empty_tiles) do
+			local r=flr(rnd(5)) --if 0, place a vase, otherwise don't
+			if r==0 then
+				c_room.vases_left+=1 -- if vase is placed, add to vase count
+				-- create_vase(tile.x,tile.y)
+			end
+	end
+
+	-- if vase is placed, randomly place an item or no item inside
+	-- if max bombs/health are placed don't place anymore bombs/health
+	-- if max bombs/health are not reached, iterate over vases that have been placed with no items and replace.
+	-- if max bombs/health are still not reached, iterate over vases with gems and replace
+	-- store current_room.item_layout
+end
+
 --===== vase functions ====================================
 function create_vase(x,y) --todo randomly generate x,y
 	return create_game_object("vase",x,y,{
-
+		draw=function(self)
+			local random = flr(rnd(1)+2)
+			if random==1 then
+				spr(lg_vase_spr[1],self.x,self.y)
+			else
+				spr(sm_vase_spr[1],self.x,self.y)
+			end
+		end
 	})
 end
+
 function place_room_items()
 	local b=current_room.max_bombs --# of bombs hidden in each room
 	local h=current_room.max_health --# of health hidden
@@ -512,6 +583,10 @@ function check_vase_item(x,y)
 			end
 		end
 	end
+end
+
+function place_vase()
+
 end
 
 function place_vases_in_room(room)
