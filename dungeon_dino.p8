@@ -15,7 +15,7 @@ local flashcount=0
 local framecounter=0 -- keep track of frames as update runs
 local obstacle_counter=0 -- used for obstacle bumping
 local current_room
-local current_room_map=nil
+local current_room_map
 local player
 local game_objects={}
 local rooms={}
@@ -88,7 +88,6 @@ function draw_game()
 			obj:draw()
 		end
 		ui()
-		-- print(current_room.number,0,0,8)
 end
 
 function draw_title()
@@ -239,7 +238,7 @@ function create_dungeon_layout()
 
 end
 --========== create objects ==========================================
-function create_game_object(name,x,y,props)
+	function create_game_object(name,x,y,props)
 	local obj={
 		name=name,
 		x=x,
@@ -267,11 +266,27 @@ function create_current_room(room)
 	local obj={
 		gems=0,
 		gems_collected=0,
-		min_gems_needed=0
+		min_gems_needed=0,
+		get_layout=function()
+			local room_map={}
+			local x,y
+			for x=room.x,room.x+15 do
+				for y=room.y,room.y+15 do
+					local tile={}
+					tile.x=x
+					tile.y=y
+					tile.spr=mget(x,y)
+					add(room_map,tile)
+				end
+			end
+			return room_map
+		end
 	}
 	for k,v in pairs(room) do
 		obj[k]=v
 	end
+
+	obj.layout=obj.get_layout()
 
 	return obj
 end
@@ -385,7 +400,7 @@ function getframe(anim,direction)
 		return frameset[flr(framecounter/11)%#frameset+1]
 end
 
-function get_map_layout()
+function get_room_layout()
 	-- finds x,y, and sprite at each map tile location
 	local room_map={}
 	local x,y
@@ -402,16 +417,21 @@ function get_map_layout()
 end
 
 function setup_room(room)
-	-- current_room=copy_table(room)
 	current_room=create_current_room(room)
-	current_room_map=get_map_layout()
-	place_vases_in_room(current_room_map)
-	vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
-	place_room_items()
+	-- current_room_map=get_room_layout()
+	place_vases_in_room(current_room.layout)
+	-- place_vases_in_room(current_room.layout)
+	-- vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
+	-- place_room_items()
 	current_room.min_gems_needed=flr(current_room.gems/2)
 end
 
 --===== vase functions ====================================
+function create_vase(x,y) --todo randomly generate x,y
+	return create_game_object("vase",x,y,{
+
+	})
+end
 function place_room_items()
 	local b=current_room.max_bombs --# of bombs hidden in each room
 	local h=current_room.max_health --# of health hidden
