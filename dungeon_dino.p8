@@ -2,19 +2,19 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 --============= sprites ===============
-bomb_spr={70}
-key_spr=80
-heal_spr=115
-master_key_spr=81
-gem_spr={66,67,68,69}
-health_spr={64,65}
-lg_vase_spr={82,83,84,85}
-sm_vase_spr={98,99,100,101}
-chest_spr={112,113}
-flashcount=0
-framecounter=0 -- keep track of frames as update runs
-obstacle_counter=0 -- used for obstacle bumping
-rooms={{
+local bomb_spr={70}
+local key_spr=80
+local heal_spr=115
+local master_key_spr=81
+local gem_spr={66,67,68,69}
+local health_spr={64,65}
+local lg_vase_spr={82,83,84,85}
+local sm_vase_spr={98,99,100,101}
+local chest_spr={112,113}
+local flashcount=0
+local framecounter=0 -- keep track of frames as update runs
+local obstacle_counter=0 -- used for obstacle bumping
+local rooms={{
 		x=0,
 		y=0,
 		start_x=1,
@@ -52,19 +52,22 @@ rooms={{
 		max_bombs=4
 	}
 }
-current_room={}
-current_room_map=nil
+local current_room={}
+local current_room_map=nil
+local player
+local game_objects={}
 
 -->8
 -- default functions
 function _init()
+	player=make_player(1,3)
 	mode="title"
 end
 
 function _update60()
 	if (mode=="title") upd_title()
 	if (mode=="instructions") upd_instructions()
-	if (mode=="setup_room") upd_setup()
+	if (mode=="setup_room") upd_game_setup()
 	if (mode=="game") upd_game()
 	if (mode=="reset_game") reset_game()
 end--_update()
@@ -72,25 +75,30 @@ end--_update()
 function _draw()
 	cls()
 	palt(0,false)
-	if (mode=="title") drw_title()
-	if (mode=="instructions") drw_instructions()
-	if (mode=="game") drw_game()
+	local obj
+	if (mode=="title") draw_title()
+	if (mode=="instructions") draw_instructions()
+	if (mode=="game") draw_game()
 	if (mode=="game_over") game_over()
-			-- display_debug("vases left:"..vases_left,0,0,7)
 end--_draw()
 
 -->8
 --updates and draws
 --===== updates ===============================================================
-function upd_setup()
+function upd_game_setup()
 	setup_room(rooms[current_room.number+1])
-	player:setup()
+	--todo
+	player.x=current_room.start_x
+	player.y=current_room.start_y
 	mode="game"
 end
 
 function upd_game()
 	framecounter+=1
-	player:upd()
+	local obj
+	for obj in all(game_objects) do
+		obj:update()
+	end
 	vases_left=#vases
 end
 
@@ -103,115 +111,29 @@ function upd_instructions()
 	if (btnp(5)) start_game()
 end
 --============== draws ========================================================
-function drw_instructions()
+function draw_instructions()
 	print("instructions",40,8,7)
 	print("todo", 55,40,8)
 	print("press ❎ to start",32,100,11)
 end
 
-function drw_game()
+function draw_game()
 		map()
 		camera(current_room.x*8,current_room.y*8)
-		player:drw()
+		for obj in all(game_objects) do
+			obj:draw()
+		end
 		ui()
+		print(player.name,0,0,8)
 end
 
-function drw_title()
+function draw_title()
 	flashcount+=1
 	-- cls()
 	print("d u n g e o n  d i n o",21,40,3)
 	flash_txt("press ❎ to start",32,70,11)
 	print("press [z] for instructions",18,88,7)
 end
-
--->8
---====== player ======================================
-player={
-	x=1,
-	y=3,
-	o_x=0,
-	o_y=0,
-	s_o_x=0,
-	s_o_y=0,
-	size=8,
-	walking=false,
-	anim_time=0,
-	anim_wait=0.16,
-	sprites={{1,2,3,4},{1,2,3,4},{5,5,6,6},{7,7,8,8}}, --l,r,u,d
-	flp=false,
-	direction=0,
-	keys=0,
-	master_key=0,
-	gems=0,
-	health=3,
-	heal=0,
-	setup=function(self)
-		--reset keys for next room
-		self.master_key=0
-		self.keys=0
-		--set player start position
-		self.x=current_room.start_x
-		self.y=current_room.start_y
-		self.direction=0
-	end,
-	move=function(self,dir_x,dir_y)
-		local next_x,next_y=self.x+dir_x,self.y+dir_y
-		local next_tile=mget(next_x,next_y)
-
-		-- move if next tile is not a wall or locked door
-		if not is_collision(next_tile,0) then
-			sfx(0)
-			self.x=next_x
-			self.y=next_y
-			obstacle_counter=0
-		else
-			obstacle_counter+=1
-			if (obstacle_counter>=2) sfx(6)
-		end
-	end,
-	drw=function(self)
-		spr(getframe(self.sprites,self.direction),self.x*8+self.o_x,self.y*8+self.o_y,1,1,self.flip)
-	end,
-	upd=function(self)
-		local i
-		for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
-			local dir_x={-1,1,0,0} --movement amounts in each direction
-			local dir_y={0,0,-1,1} --l,r,u,d
-			if btnp(i) and i<=3 then
-				-- player.move(dir_x[i+1],dir_y[i+1])
-				self:move(dir_x[i+1],dir_y[i+1])
-				self.direction=i --player is facing l=0,r=1,u=2,d=3
-				if dir_x[i+1]<0 then self.flip=true else self.flip=false end
-			elseif btnp(i) and i==4 then
-				--use healing item if possible
-				if self.health<3 and self.heal>0 then
-					sfx(8)
-					self.health+=1
-					self.heal-=1
-				else
-					sfx(9)
-				end
-			elseif btnp(i) and i==5 then
-				--todo refactor
-				local dx,dy=0,0
-				if self.direction==0 then
-					dx=-1 dy=0
-				elseif self.direction==1 then
-					dx=1 dy=0
-				elseif self.direction==2 then
-					dx=0 dy=-1
-				elseif self.direction==3 then
-					dx=0 dy=1
-				end
-				local next_x,next_y=self.x+dx,self.y+dy
-				local next_tile=mget(next_x,next_y)
-				handle_item_collision(next_x,next_y,next_tile)
-			end
-		end
-
-		if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
-	end
-}
 
 -->8
 --===== collision functions ======================================
@@ -340,6 +262,117 @@ anims={
 function start_game()
 	setup_room(rooms[1])
 	mode="game"
+end
+
+function make_game_object(name,x,y,props)
+	local obj={
+		name=name,
+		x=x,
+		y=y,
+		update=function(self)
+			--do nothing
+			end,
+		draw=function(self)
+			--do nothing
+		end,
+		--todo handle collision
+	}
+	--add additional properties
+	local k,v
+	for k,v in pairs(props) do
+		obj[k]=v
+	end
+	--add to list of game objects
+	add(game_objects,obj)
+
+	return obj
+end
+
+function make_player(x,y)
+	return make_game_object("player",x,y,{
+		o_x=0,
+		o_y=0,
+		s_o_x=0,
+		s_o_y=0,
+		size=8,
+		walking=false,
+		anim_time=0,
+		anim_wait=0.16,
+		sprites={{1,2,3,4},{1,2,3,4},{5,5,6,6},{7,7,8,8}}, --l,r,u,d
+		flp=false,
+		direction=0,
+		keys=0,
+		master_key=0,
+		gems=0,
+		health=3,
+		heal=0,
+		-- setup=function(self)
+		-- 	--reset keys for next room
+		-- 	self.master_key=0
+		-- 	self.keys=0
+		-- 	--set player start position
+		-- 	self.x=current_room.start_x
+		-- 	self.y=current_room.start_y
+		-- 	self.direction=0
+		-- end,
+		move=function(self,dir_x,dir_y)
+			local next_x,next_y=self.x+dir_x,self.y+dir_y
+			local next_tile=mget(next_x,next_y)
+
+			-- move if next tile is not a wall or locked door
+			if not is_collision(next_tile,0) then
+				sfx(0)
+				self.x=next_x
+				self.y=next_y
+				obstacle_counter=0
+			else
+				obstacle_counter+=1
+				if (obstacle_counter>=2) sfx(6)
+			end
+		end,
+		draw=function(self)
+			spr(getframe(self.sprites,self.direction),self.x*8+self.o_x,self.y*8+self.o_y,1,1,self.flip)
+		end,
+		update=function(self)
+			local i
+			for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
+				local dir_x={-1,1,0,0} --movement amounts in each direction
+				local dir_y={0,0,-1,1} --l,r,u,d
+				if btnp(i) and i<=3 then
+					-- player.move(dir_x[i+1],dir_y[i+1])
+					self:move(dir_x[i+1],dir_y[i+1])
+					self.direction=i --player is facing l=0,r=1,u=2,d=3
+					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
+				elseif btnp(i) and i==4 then
+					--use healing item if possible
+					if self.health<3 and self.heal>0 then
+						sfx(8)
+						self.health+=1
+						self.heal-=1
+					else
+						sfx(9)
+					end
+				elseif btnp(i) and i==5 then
+					--todo refactor
+					local dx,dy=0,0
+					if self.direction==0 then
+						dx=-1 dy=0
+					elseif self.direction==1 then
+						dx=1 dy=0
+					elseif self.direction==2 then
+						dx=0 dy=-1
+					elseif self.direction==3 then
+						dx=0 dy=1
+					end
+					local next_x,next_y=self.x+dx,self.y+dy
+					local next_tile=mget(next_x,next_y)
+					handle_item_collision(next_x,next_y,next_tile)
+				end
+			end
+
+			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
+		end
+	})
 end
 
 function getframe(anim,direction)
