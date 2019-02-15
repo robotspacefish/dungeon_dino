@@ -87,7 +87,7 @@ function draw_game()
 		for obj in all(game_objects) do
 			obj:draw()
 		end
-		-- ui()
+		ui()
 		-- print(current_room.number,0,0,8)
 end
 
@@ -404,14 +404,113 @@ end
 function setup_room(room)
 	-- current_room=copy_table(room)
 	current_room=create_current_room(room)
-	-- current_room_map=get_map_layout()
-	-- place_vases_in_room(current_room_map)
-	-- vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
-	-- place_room_items()
-	-- current_room.min_gems_needed=flr(current_room.gems/2)
+	current_room_map=get_map_layout()
+	place_vases_in_room(current_room_map)
+	vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
+	place_room_items()
+	current_room.min_gems_needed=flr(current_room.gems/2)
 end
 
---todo replace vase functions
+--===== vase functions ====================================
+function place_room_items()
+	local b=current_room.max_bombs --# of bombs hidden in each room
+	local h=current_room.max_health --# of health hidden
+	local v
+	for v in all(vases) do
+		local random=flr(rnd(4))
+		if random==0 then --place bomb
+			if b>0 then
+				v.bomb=true
+				b-=1
+				-- mset(v.x,v.y,bomb_spr[1])
+			else
+				--place gem instead
+				v.gem=true
+				current_room.gems+=1
+				-- mset(v.x,v.y,gem_spr[1])
+			end
+		elseif random==1 then --place health
+			if h>0 then
+				v.health=true
+				h-=1
+				mset(v.x,v.y,heal_spr)
+			else
+				v.gem=true
+				current_room.gems+=1
+			end
+		elseif random==2 then
+			v.gem=true
+			current_room.gems+=1
+			-- mset(v.x,v.y,gem_spr[1])
+		end
+	end
+end
+
+function init_vases_for_items(room)
+	local vase={}
+	local t
+	for t in all(room) do
+		if t.spr==sm_vase_spr[1] or t.spr==lg_vase_spr[1] then
+			local v={}
+			v.x=t.x
+			v.y=t.y
+			v.spr=t.spr
+			v.bomb=false
+			v.health=false
+			v.gem=false
+			v.item=""
+			add(vase,v)
+		end
+	end
+	return vase
+end
+
+function check_vase_item(x,y)
+	local v
+	for v in all(vases) do
+		if v.x==x and v.y==y then
+			if v.bomb then
+				--todo sfx
+				if player.health>0 then
+					player.health-=1
+				end
+				if player.health==0 then mode="game_over" end
+			elseif v.health then
+				if player.health<3 then
+					sfx(8)
+					player.health+=1
+				else
+					sfx(10)
+					player.heal+=1
+				end
+			elseif v.gem then
+				sfx(3)
+				player.gems+=1
+				current_room.gems-=1
+				current_room.gems_collected+=1
+				if current_room.gems<0 then current_room.gems=0 end
+			end
+		end
+	end
+end
+
+function place_vases_in_room(room)
+	local total_vases=flr(rnd(1))+6
+	local vase_types={lg_vase_spr[1],sm_vase_spr[1]}
+	--todo init vases in here
+	local tile
+	for tile in all(room) do
+		if tile.spr==192 or tile.spr==208 then
+			local r=flr(rnd(5)) --if 0, place a vase, otherwise don't
+			if r==0 then
+				tile.spr=vase_types[flr(rnd(2))+1]
+				mset(tile.x,tile.y,tile.spr)
+				total_vases-=1 --todo
+			end
+		end
+		if total_vases==0 then break end --todo
+	end
+end
 
 function game_over()
 	cls()
