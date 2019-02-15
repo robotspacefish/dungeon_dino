@@ -307,7 +307,7 @@ function create_player(x,y)
 		flp=false,
 		direction=0,
 		keys=0,
-		master_key=0,
+		master_key=1, --todo change back to 0
 		gems=0,
 		health=3,
 		heal=0,
