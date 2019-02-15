@@ -14,53 +14,55 @@ local chest_spr={112,113}
 local flashcount=0
 local framecounter=0 -- keep track of frames as update runs
 local obstacle_counter=0 -- used for obstacle bumping
-local rooms={{
-		x=0,
-		y=0,
-		start_x=1,
-		start_y=3,
-		number=1,
-		gems=0,
-		gems_collected=0,
-		min_gems_needed=0,
-		max_health=1,
-		max_bombs=3,
-		chests={{x=3,y=9},{x=8,y=3},{x=14,y=3},{x=10,y=12}},
-		locked_doors={{x=7,y=6},{x=9,y=9},{x=12,y=7}}
-	},{
-		x=16,
-		y=0,
-		start_x=17,
-		start_y=3,
-		number=2,
-		gems=0,
-		gems_collected=0,
-		min_gems_needed=0,
-		max_health=1,
-		max_bombs=3
-	},
-	{
-		x=32,
-		y=0,
-		start_x=33,
-		start_y=3,
-		number=3,
-		gems=0,
-		gems_collected=0,
-		min_gems_needed=0,
-		max_health=2,
-		max_bombs=4
-	}
-}
-local current_room={}
+-- local rooms={{
+-- 		x=0,
+-- 		y=0,
+-- 		start_x=1,
+-- 		start_y=3,
+-- 		number=1,
+-- 		gems=0,
+-- 		gems_collected=0,
+-- 		min_gems_needed=0,
+-- 		max_health=1,
+-- 		max_bombs=3,
+-- 		chests={{x=3,y=9},{x=8,y=3},{x=14,y=3},{x=10,y=12}},
+-- 		locked_doors={{x=7,y=6},{x=9,y=9},{x=12,y=7}}
+-- 	},{
+-- 		x=16,
+-- 		y=0,
+-- 		start_x=17,
+-- 		start_y=3,
+-- 		number=2,
+-- 		gems=0,
+-- 		gems_collected=0,
+-- 		min_gems_needed=0,
+-- 		max_health=1,
+-- 		max_bombs=3
+-- 	},
+-- 	{
+-- 		x=32,
+-- 		y=0,
+-- 		start_x=33,
+-- 		start_y=3,
+-- 		number=3,
+-- 		gems=0,
+-- 		gems_collected=0,
+-- 		min_gems_needed=0,
+-- 		max_health=2,
+-- 		max_bombs=4
+-- 	}
+-- }
+local current_room
 local current_room_map=nil
 local player
 local game_objects={}
+local rooms={}
 
 -->8
 -- default functions
 function _init()
 	player=create_player(1,3)
+	create_dungeon_layout()
 	mode="title"
 end
 
@@ -99,16 +101,16 @@ function upd_game()
 	for obj in all(game_objects) do
 		obj:update()
 	end
-	vases_left=#vases
+	-- vases_left=#vases --todo uncomment
 end
 
 function upd_title()
 	if (btnp(4)) mode="instructions"
-	if (btnp(5)) start_game()
+	if (btnp(5)) start_game(rooms[1])
 end
 
 function upd_instructions()
-	if (btnp(5)) start_game()
+	if (btnp(5)) start_game(rooms[1])
 end
 --============== draws ========================================================
 function draw_instructions()
@@ -123,8 +125,8 @@ function draw_game()
 		for obj in all(game_objects) do
 			obj:draw()
 		end
-		ui()
-		print(player.name,0,0,8)
+		-- ui()
+		-- print(current_room.number,0,0,8)
 end
 
 function draw_title()
@@ -259,19 +261,20 @@ anims={
 }
 -->8
 --====== misc and helper functions ======================================
-function start_game()
-	setup_room(rooms[1])
+function start_game(room)
+	setup_room(room)
 	mode="game"
 end
 
-
+--x,y,sx,sy,n,mh,mb,ch,lds
 function create_dungeon_layout()
-	local i
-	for i=0,15 do
-		local room
-		room=
-		add(rooms,room)
-	end
+	--todo create more rooms efficiently
+	create_room(0,0,1,3,1,1,3,
+													{{x=3,y=9},{x=8,y=3},{x=14,y=3},{x=10,y=12}},
+													{{x=7,y=6},{x=9,y=9},{x=12,y=7}})
+	create_room(16,0,17,3,2,1,3) --todo add chest & doors
+	create_room(32,0,33,3,3,2,4)
+
 end
 --========== create objects ==========================================
 function create_game_object(name,x,y,props)
@@ -300,16 +303,19 @@ end
 
 function create_current_room(room)
 	local obj={
+		gems=0,
 		gems_collected=0,
 		min_gems_needed=0
 	}
 	for k,v in pairs(room) do
 		obj[k]=v
 	end
+
+	return obj
 end
 
 function create_room(x,y,sx,sy,n,mh,mb,ch,lds)
-	local room={
+	local obj={
 		x=x,
 		y=y,
 		start_x=sx,
@@ -320,6 +326,9 @@ function create_room(x,y,sx,sy,n,mh,mb,ch,lds)
 		chests=ch,
 		locked_doors=lds
 	}
+
+	add(rooms,obj)
+	return obj
 end
 
 function create_player(x,y)
@@ -403,7 +412,6 @@ function create_player(x,y)
 					handle_item_collision(next_x,next_y,next_tile)
 				end
 			end
-
 			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
 		end
 	})
@@ -432,113 +440,16 @@ function get_map_layout()
 end
 
 function setup_room(room)
-	current_room=copy_table(room)
-	current_room_map=get_map_layout()
-	place_vases_in_room(current_room_map)
-	vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
-	place_room_items()
-	current_room.min_gems_needed=flr(current_room.gems/2)
+	-- current_room=copy_table(room)
+	current_room=create_current_room(room)
+	-- current_room_map=get_map_layout()
+	-- place_vases_in_room(current_room_map)
+	-- vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
+	-- place_room_items()
+	-- current_room.min_gems_needed=flr(current_room.gems/2)
 end
 
-function place_room_items()
-	local b=current_room.max_bombs --# of bombs hidden in each room
-	local h=current_room.max_health --# of health hidden
-	local v
-	for v in all(vases) do
-		local random=flr(rnd(4))
-		if random==0 then --place bomb
-			if b>0 then
-				v.bomb=true
-				b-=1
-				-- mset(v.x,v.y,bomb_spr[1])
-			else
-				--place gem instead
-				v.gem=true
-				current_room.gems+=1
-				-- mset(v.x,v.y,gem_spr[1])
-			end
-		elseif random==1 then --place health
-			if h>0 then
-				v.health=true
-				h-=1
-				mset(v.x,v.y,heal_spr)
-			else
-				v.gem=true
-				current_room.gems+=1
-			end
-		elseif random==2 then
-			v.gem=true
-			current_room.gems+=1
-			-- mset(v.x,v.y,gem_spr[1])
-		end
-	end
-end
-
-function init_vases_for_items(room)
-	local vase={}
-	local t
-	for t in all(room) do
-		if t.spr==sm_vase_spr[1] or t.spr==lg_vase_spr[1] then
-			local v={}
-			v.x=t.x
-			v.y=t.y
-			v.spr=t.spr
-			v.bomb=false
-			v.health=false
-			v.gem=false
-			v.item=""
-			add(vase,v)
-		end
-	end
-	return vase
-end
-
-function check_vase_item(x,y)
-	local v
-	for v in all(vases) do
-		if v.x==x and v.y==y then
-			if v.bomb then
-				--todo sfx
-				if player.health>0 then
-					player.health-=1
-				end
-				if player.health==0 then mode="game_over" end
-			elseif v.health then
-				if player.health<3 then
-					sfx(8)
-					player.health+=1
-				else
-					sfx(10)
-					player.heal+=1
-				end
-			elseif v.gem then
-				sfx(3)
-				player.gems+=1
-				current_room.gems-=1
-				current_room.gems_collected+=1
-				if current_room.gems<0 then current_room.gems=0 end
-			end
-		end
-	end
-end
-
-function place_vases_in_room(room)
-	local total_vases=flr(rnd(1))+6
-	local vase_types={lg_vase_spr[1],sm_vase_spr[1]}
-	--todo init vases in here
-	local tile
-	for tile in all(room) do
-		if tile.spr==192 or tile.spr==208 then
-			local r=flr(rnd(5)) --if 0, place a vase, otherwise don't
-			if r==0 then
-				tile.spr=vase_types[flr(rnd(2))+1]
-				mset(tile.x,tile.y,tile.spr)
-				total_vases-=1 --todo
-			end
-		end
-		if total_vases==0 then break end --todo
-	end
-end
+--todo replace vase functions
 
 function game_over()
 	cls()
@@ -571,15 +482,15 @@ function reset_game()
 	end
 	mode="game"
 end
-
-function copy_table(ot)
-	local nt={}
-	local k,v
-	for k,v in pairs(ot) do
-		nt[k]=v
-	end
-	return nt
-end
+--
+-- function copy_table(ot)
+-- 	local nt={}
+-- 	local k,v
+-- 	for k,v in pairs(ot) do
+-- 		nt[k]=v
+-- 	end
+-- 	return nt
+-- end
 
 function flash_txt(txt,x,y,col)
   if(flashcount<25)print(txt,x,y,col)
