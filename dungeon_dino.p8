@@ -60,7 +60,7 @@ local game_objects={}
 -->8
 -- default functions
 function _init()
-	player=make_player(1,3)
+	player=create_player(1,3)
 	mode="title"
 end
 
@@ -89,7 +89,7 @@ function upd_game_setup()
 	setup_room(rooms[current_room.number+1])
 	--todo
 	player.x=current_room.start_x
-	player.y=current_room.start_y
+	player.y=current_room.start.y
 	mode="game"
 end
 
@@ -264,7 +264,17 @@ function start_game()
 	mode="game"
 end
 
-function make_game_object(name,x,y,props)
+
+function create_dungeon_layout()
+	local i
+	for i=0,15 do
+		local room
+		room=
+		add(rooms,room)
+	end
+end
+--========== create objects ==========================================
+function create_game_object(name,x,y,props)
 	local obj={
 		name=name,
 		x=x,
@@ -288,8 +298,32 @@ function make_game_object(name,x,y,props)
 	return obj
 end
 
-function make_player(x,y)
-	return make_game_object("player",x,y,{
+function create_current_room(room)
+	local obj={
+		gems_collected=0,
+		min_gems_needed=0
+	}
+	for k,v in pairs(room) do
+		obj[k]=v
+	end
+end
+
+function create_room(x,y,sx,sy,n,mh,mb,ch,lds)
+	local room={
+		x=x,
+		y=y,
+		start_x=sx,
+		start_y=sy,
+		number=n,
+		max_health=mh,
+		max_bombs=mb,
+		chests=ch,
+		locked_doors=lds
+	}
+end
+
+function create_player(x,y)
+	return create_game_object("player",x,y,{
 		o_x=0,
 		o_y=0,
 		s_o_x=0,
