@@ -123,19 +123,21 @@ end
 
 function handle_item_collision(obj)
 				if obj.name=="vase" then
-					--todo
-				del(game_objects, obj)
+					--todo vase smash sfx for different size vases
 				current_room.vases_left-=1
-				mset(obj.x,obj.y,sm_vase_spr[4])
+				mset(obj.x,obj.y,sm_vase_spr[4]) --todo lg & sm
 			end
 
 			if obj.name=="heal" then
-				--todo
+				player:heal()
+				mset(obj.x,obj.y,floor_spr[1])
 			end
 
 			if obj.name=="bomb" then
 				--todo
 			end
+
+		del(game_objects, obj)
 end
 --
 -- function handle_item_collision(next_x,next_y,next_tile)
@@ -335,7 +337,7 @@ function create_room(x,y,sx,sy,n,mh,mb,ch,lds)
 		start_x=sx,
 		start_y=sy,
 		number=n,
-		max_health=mh,
+		max_heal=mh,
 		max_bombs=mb,
 		chests=ch,
 		locked_doors=lds
@@ -422,7 +424,12 @@ function create_player(x,y)
 			for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
 				if (btnp(i) and i<=3) then
 					nx,ny=self.x+dir_x[i+1],self.y+dir_y[i+1]
+
+					obstacle_counter+=1
+					if (obstacle_counter>=2) sfx(6) --todo fix: going off when not facing obstacle
+
 					can_walk=has_flag(mget(nx,ny),0)
+
 					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
 					self.direction=i --player is facing l=0,r=1,u=2,d=3
 				end
@@ -430,45 +437,12 @@ function create_player(x,y)
 				if (btnp(i) and i==5) self:action()
 
 				if can_walk then
+					sfx(0)
+					obstacle_counter=0
 					self.x=nx
 					self.y=ny
 				end
-
-					-- --todo refactor
-					-- local dx,dy=0,0
-					-- if self.direction==0 then
-					-- 	dx=-1 dy=0
-					-- elseif self.direction==1 then
-					-- 	dx=1 dy=0
-					-- elseif self.direction==2 then
-					-- 	dx=0 dy=-1
-					-- elseif self.direction==3 then
-					-- 	dx=0 dy=1
-					-- end
-					-- local next_x,next_y=self.x+dx,self.y+dy
-					-- local next_tile=mget(next_x,next_y)
-				--todo
 			end --for loop
-		-- next_x=self.x+dx
-		-- next_y=self.x+dy
-		--check collisions
-		-- local nt=mget(self.x+dx,self.y+dy)
-
-		-- local next_tile=mget(next_x,next_y)
-		-- if has_flag(nt,0) then --walk
-			-- sfx(0)x
-			-- self.x+=dx
-			-- self.y+=dy
-		-- 	-- obstacle_counter=0
-		-- else
-		-- 	-- obstacle_counter+=1
-		-- 	-- if (obstacle_counter>=2) sfx(6)
-		-- 	local item=is_item_collision(self.x+dx,self.y+dy)
-		-- 	-- if (item ~=nil)	handle_item_collision(item)
-		-- 	if (item ~=nil) and action_btn	then
-		-- 		mset(obj.x,obj.y,sm_vase_spr[4])
-		-- 	end
-		-- end
 
 			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
 		end--update
@@ -483,6 +457,14 @@ end
 
 function create_bomb(x,y)
 	return create_game_object("bomb",x,y)
+end
+
+function create_heal(x,y)
+	return create_game_object("heal",x,y,{
+		draw=function(self)
+			spr(heal_spr,self.x*8,self.y*8)
+		end
+	})
 end
 --====== setup room ==============
 function setup_room(room)
@@ -526,8 +508,16 @@ function setup_vases(c_room)
 	end
 end
 
+--todo refactor: combine with setup_vases
 function setup_room_items(c_room)
-
+		local heals=flr(rnd(current_room.max_heal))
+		local h
+		for h=0,heals do
+			local i=flr(rnd(#c_room.empty_tiles))
+			create_heal(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y)
+			del(c_room.empty_tiles,i)
+			mset(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y,0) --set transparent sprite on tile
+		end
 end
 
 
@@ -558,7 +548,7 @@ end
 
 function place_room_items()
 	local b=current_room.max_bombs --# of bombs hidden in each room
-	local h=current_room.max_health --# of health hidden
+	local h=current_room.max_heal --# of health hidden
 	local v
 	for v in all(vases) do
 		local random=flr(rnd(4))
@@ -703,9 +693,9 @@ function display_debug()
 	-- 		print(obj.x..","..obj.y,20,10,8)
 	-- 	end
 	-- end
-
+		print(#game_objects,0,0,7)
 	-- print("empty tiles:"..#current_room.empty_tiles,0,0,7)
-	print("vases:"..current_room.vases_left,0,10,7)
+	-- print("vases:"..current_room.vases_left,0,10,7)
 	-- print("px:"..player.x..",py:"..player.y,70,0,7)
 	-- print("current room:"..current_room.number,35,10,7)
 	-- local x,y=0,0
