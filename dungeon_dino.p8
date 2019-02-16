@@ -109,56 +109,82 @@ end
 
 -->8
 --===== collision functions ======================================
-function is_collision(next_tile,flag)
+function has_flag(next_tile,flag)
 	if fget(next_tile,flag) then return true end
 	return false
 end
 
-function handle_item_collision(next_x,next_y,next_tile)
-	--vase
-	if is_collision(next_tile,1) then
-		if next_tile==lg_vase_spr[1] then
-			sfx(1)
-		elseif next_tile==sm_vase_spr[1] then
-			sfx(2)
-		end
-
-		check_vase_item(next_x,next_y)
-		--remove vase from map
-		--todo delete vase from game_objects
-		--todo if heart then don't leave a smashed vase behind
-		mset(next_x,next_y,lg_vase_spr[4])
-		--remove vase from vases table
-		local v
-			for v in all(vases) do
-				if v.x==next_x and v.y==next_y then
-					del(vases,v)
-				end
-			end
+function is_item_collision(next_x,next_y)
+	for obj in all(game_objects) do
+		if (next_x==obj.x and next_y==obj.y) return obj
 	end
-
-	--chest contaning key
-	if is_collision(next_tile,2) then
-		sfx(5)
-		player.keys+=1
-		--empty chest sprite
-		mset(next_x,next_y,chest_spr[1])
-	end
-
-	--locked door
-	if is_collision(next_tile,7) and player.keys>0 then
-		sfx(4)
-		--change tile in location to unlocked door color
-		mset(next_x,next_y,next_tile+1)
-		--remove key from inventory
-		player.keys-=1
-	end
-
-	--goal door
-	if is_collision(next_tile,3) and player.master_key==1 then
-		mode="setup_room"
-	end
+	return nil
 end
+
+function handle_item_collision(obj)
+				if obj.name=="vase" then
+					--todo vase smash sfx for different size vases
+				current_room.vases_left-=1
+				mset(obj.x,obj.y,sm_vase_spr[4]) --todo lg & sm
+			end
+
+			if obj.name=="heal" then
+				player:heal()
+				mset(obj.x,obj.y,floor_spr[1])
+			end
+
+			if obj.name=="bomb" then
+				--todo
+			end
+
+		del(game_objects, obj)
+end
+--
+-- function handle_item_collision(next_x,next_y,next_tile)
+-- 	--vase
+-- 	if is_collision(next_tile,1) then
+-- 		if next_tile==lg_vase_spr[1] then
+-- 			sfx(1)
+-- 		elseif next_tile==sm_vase_spr[1] then
+-- 			sfx(2)
+-- 		end
+--
+-- 		check_vase_item(next_x,next_y)
+-- 		--remove vase from map
+-- 		--todo delete vase from game_objects
+-- 		--todo if heart then don't leave a smashed vase behind
+-- 		mset(next_x,next_y,lg_vase_spr[4])
+-- 		--remove vase from vases table
+-- 		local v
+-- 			for v in all(vases) do
+-- 				if v.x==next_x and v.y==next_y then
+-- 					del(vases,v)
+-- 				end
+-- 			end
+-- 	end
+--
+-- 	--chest contaning key
+-- 	if is_collision(next_tile,2) then
+-- 		sfx(5)
+-- 		player.keys+=1
+-- 		--empty chest sprite
+-- 		mset(next_x,next_y,chest_spr[1])
+-- 	end
+--
+-- 	--locked door
+-- 	if is_collision(next_tile,7) and player.keys>0 then
+-- 		sfx(4)
+-- 		--change tile in location to unlocked door color
+-- 		mset(next_x,next_y,next_tile+1)
+-- 		--remove key from inventory
+-- 		player.keys-=1
+-- 	end
+--
+-- 	--goal door
+-- 	if is_collision(next_tile,3) and player.master_key==1 then
+-- 		mode="setup_room"
+-- 	end
+-- end
 
 -->8
 --===== ui functions ======================================
@@ -257,8 +283,7 @@ end
 			end,
 		draw=function(self)
 			--do nothing
-		end,
-		--todo handle collision
+		end
 	}
 	--add additional properties
 	local k,v
@@ -312,7 +337,7 @@ function create_room(x,y,sx,sy,n,mh,mb,ch,lds)
 		start_x=sx,
 		start_y=sy,
 		number=n,
-		max_health=mh,
+		max_heal=mh,
 		max_bombs=mb,
 		chests=ch,
 		locked_doors=lds
@@ -324,6 +349,7 @@ end
 
 function create_player(x,y)
 	return create_game_object("player",x,y,{
+		--====== player variables =======================================
 		o_x=0,
 		o_y=0,
 		s_o_x=0,
@@ -340,6 +366,7 @@ function create_player(x,y)
 		gems=0,
 		health=3,
 		heal=0,
+		--====== player methods ==========================================
 		-- setup=function(self)
 		-- 	--reset keys for next room
 		-- 	self.master_key=0
@@ -349,12 +376,32 @@ function create_player(x,y)
 		-- 	self.y=current_room.start_y
 		-- 	self.direction=0
 		-- end,
-		move=function(self,dir_x,dir_y)
+		action=function(self)
+			--check for collision with item
+			local dx,dy=0,0
+			if (self.direction==0) dx=-1
+			if (self.direction==1) dx=1
+			if (self.direction==2) dy=-1
+			if (self.direction==3) dy=1
+
+			local nx,ny=self.x+dx,self.y+dy
+
+			item=is_item_collision(nx,ny)
+			if (item ~=nil)	handle_item_collision(item)
+		end,
+		heal=function(self)
+			if self.health<3 and self.heal>0 then
+				sfx(8)
+				self.health+=1
+				self.heal-=1
+			else
+				sfx(9)
+			end
+		end,
+		take_turn=function(self,dir_x,dir_y)
 			local next_x,next_y=self.x+dir_x,self.y+dir_y
 			local next_tile=mget(next_x,next_y)
-
-			-- move if next tile is not a wall or locked door
-			if not is_collision(next_tile,0) then
+			if has_flag(next_tile,0) then --walk
 				sfx(0)
 				self.x=next_x
 				self.y=next_y
@@ -362,50 +409,43 @@ function create_player(x,y)
 			else
 				obstacle_counter+=1
 				if (obstacle_counter>=2) sfx(6)
+				handle_item_collision(next_x,next_y,next_tile)
 			end
-		end,
+		end,--take_turn
 		draw=function(self)
 			spr(getframe(self.sprites,self.direction),self.x*8+self.o_x,self.y*8+self.o_y,1,1,self.flip)
-		end,
+		end,--draw
 		update=function(self)
+			local dir_x={-1,1,0,0} --movement amounts in each direction
+			local dir_y={0,0,-1,1} --l,r,u,d
+			local nx,ny
+			local can_walk=false
 			local i
 			for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
-				local dir_x={-1,1,0,0} --movement amounts in each direction
-				local dir_y={0,0,-1,1} --l,r,u,d
-				if btnp(i) and i<=3 then
-					-- player.move(dir_x[i+1],dir_y[i+1])
-					self:move(dir_x[i+1],dir_y[i+1])
-					self.direction=i --player is facing l=0,r=1,u=2,d=3
+				if (btnp(i) and i<=3) then
+					nx,ny=self.x+dir_x[i+1],self.y+dir_y[i+1]
+
+					obstacle_counter+=1
+					if (obstacle_counter>=2) sfx(6) --todo fix: going off when not facing obstacle
+
+					can_walk=has_flag(mget(nx,ny),0)
+
 					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
-				elseif btnp(i) and i==4 then
-					--use healing item if possible
-					if self.health<3 and self.heal>0 then
-						sfx(8)
-						self.health+=1
-						self.heal-=1
-					else
-						sfx(9)
-					end
-				elseif btnp(i) and i==5 then
-					--todo refactor
-					local dx,dy=0,0
-					if self.direction==0 then
-						dx=-1 dy=0
-					elseif self.direction==1 then
-						dx=1 dy=0
-					elseif self.direction==2 then
-						dx=0 dy=-1
-					elseif self.direction==3 then
-						dx=0 dy=1
-					end
-					local next_x,next_y=self.x+dx,self.y+dy
-					local next_tile=mget(next_x,next_y)
-					--todo uncomment
-					-- handle_item_collision(next_x,next_y,next_tile)
+					self.direction=i --player is facing l=0,r=1,u=2,d=3
 				end
-			end
+				if (btnp(i) and i==4)	self:heal()
+				if (btnp(i) and i==5) self:action()
+
+				if can_walk then
+					sfx(0)
+					obstacle_counter=0
+					self.x=nx
+					self.y=ny
+				end
+			end --for loop
+
 			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
-		end
+		end--update
 	})
 end
 
@@ -417,6 +457,14 @@ end
 
 function create_bomb(x,y)
 	return create_game_object("bomb",x,y)
+end
+
+function create_heal(x,y)
+	return create_game_object("heal",x,y,{
+		draw=function(self)
+			spr(heal_spr,self.x*8,self.y*8)
+		end
+	})
 end
 --====== setup room ==============
 function setup_room(room)
@@ -452,14 +500,24 @@ function setup_vases(c_room)
 			c_room.vases_left+=1
 			local v_spr=vase_types[flr(rnd(2))+1]
 			create_vase(t.x,t.y,v_spr)
+			del(c_room.empty_tiles,t)
+			mset(t.x,t.y,0) --set transparent sprite on tile
 			-- total_vases-=1 --todo
 		end
 			-- if total_vases==0 then break end --todo
 	end
 end
 
+--todo refactor: combine with setup_vases
 function setup_room_items(c_room)
-
+		local heals=flr(rnd(current_room.max_heal))
+		local h
+		for h=0,heals do
+			local i=flr(rnd(#c_room.empty_tiles))
+			create_heal(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y)
+			del(c_room.empty_tiles,i)
+			mset(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y,0) --set transparent sprite on tile
+		end
 end
 
 
@@ -490,7 +548,7 @@ end
 
 function place_room_items()
 	local b=current_room.max_bombs --# of bombs hidden in each room
-	local h=current_room.max_health --# of health hidden
+	local h=current_room.max_heal --# of health hidden
 	local v
 	for v in all(vases) do
 		local random=flr(rnd(4))
@@ -616,9 +674,26 @@ function flash_txt(txt,x,y,col)
   if(flashcount > 50)flashcount=0
 end
 
+function for_each_game_object(name,callback)
+	local obj
+	for obj in all(game_objects) do
+		if obj.name==name then
+			callback(obj)
+		end
+	end
+end
+
 function display_debug()
-	local t=mget(player.x,player.y)
-	print("tile:"..t,0,0,8)
+	-- local t=mget(player.x,player.y)
+	-- print("tile:"..t,0,0,8)
+	-- -- print(collision,0,30,8)
+	-- for obj in all(game_objects) do
+	-- 	if obj.name=="vase" and player.x == obj.x and player.y == obj.y then
+	-- 		print(obj.name,0,10,8)
+	-- 		print(obj.x..","..obj.y,20,10,8)
+	-- 	end
+	-- end
+		print(#game_objects,0,0,7)
 	-- print("empty tiles:"..#current_room.empty_tiles,0,0,7)
 	-- print("vases:"..current_room.vases_left,0,10,7)
 	-- print("px:"..player.x..",py:"..player.y,70,0,7)
@@ -758,8 +833,8 @@ __gfx__
 000000000000000000000000666666602222222000000000000000000000000000000000000000000000000000000000555000004440000099900000aaa00000
 000000006606606020222020666666602222222000000000000000000000000000000000000000000000000000000000555050504440404099909090aaa0a0a0
 __gff__
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000003020202000000000000000000000000030202020000000000000000000001051313000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010101010000000000000000000049000101010101010100000020208100490001010101010101010101008181004900010101010000000000000081810049
+0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000002020203000000000000000000000000020202030000000000000000000000041212000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000048010000000000000000000020218001480000000000000000000000008080014800000001010000000000000080800148
 __map__
 00000000000000000000000000000000c0c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000c0c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -918,4 +993,3 @@ __music__
 00 00000000
 00 00000000
 00 00000000
-
