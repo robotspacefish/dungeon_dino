@@ -408,10 +408,13 @@ function create_player(x,y)
 			if (item ~=nil)	handle_item_collision(item)
 		end,
 		heal=function(self)
-			if self.health<3 and self.heal>0 then
+			if self.health<3 and self.potion>0 then
 				sfx(8)
 				self.health+=1
-				self.heal-=1
+				self.potion-=1
+			elseif self.health==3 then
+				sfx(10)
+				self.potion+=1
 			else
 				sfx(9)
 			end
@@ -451,7 +454,9 @@ function create_player(x,y)
 					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
 					self.direction=i --player is facing l=0,r=1,u=2,d=3
 				end
-				if (btnp(i) and i==4)	self:heal()
+				--todo uncomment
+				-- if (btnp(i) and i==4)	self:heal()
+				if (btnp(i) and i==4)	mode="game_over"
 				if (btnp(i) and i==5) self:action()
 
 				if can_walk then
@@ -477,8 +482,8 @@ function create_bomb(x,y)
 	return create_game_object("bomb",x,y)
 end
 
-function create_heal(x,y)
-	return create_game_object("heal",x,y,{
+function create_potion(x,y)
+	return create_game_object("potion",x,y,{
 		draw=function(self)
 			spr(heal_spr,self.x*8,self.y*8)
 		end
@@ -532,7 +537,7 @@ function setup_room_items(c_room)
 		local h
 		for h=0,heals do
 			local i=flr(rnd(#c_room.empty_tiles))
-			create_heal(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y)
+			create_potion(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y)
 			del(c_room.empty_tiles,i)
 			mset(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y,0) --set transparent sprite on tile
 		end
