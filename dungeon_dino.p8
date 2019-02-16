@@ -101,7 +101,7 @@ function draw_game()
 		end
 
 		--todo uncomment
-		-- ui()
+		ui()
 
 		display_debug()
 end
