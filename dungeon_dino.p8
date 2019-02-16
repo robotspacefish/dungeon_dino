@@ -96,16 +96,7 @@ function draw_game()
 		--todo uncomment
 		-- ui()
 
-		--debug
-		-- print("empty tiles:"..#current_room.empty_tiles,0,0,7)
-		print("vases:"..current_room.vases_left,0,10,7)
-		-- print("px:"..player.x..",py:"..player.y,70,0,7)
-		-- print("current room:"..current_room.number,35,10,7)
-		-- local x,y=0,0
-		-- for k,v in pairs(current_room.empty_tiles[20]) do
-		-- 		print("k:"..k.."v:"..v,x,y,7)
-		-- 		y+=10
-		-- end
+		display_debug()
 end
 
 function draw_title()
@@ -409,7 +400,8 @@ function create_player(x,y)
 					end
 					local next_x,next_y=self.x+dx,self.y+dy
 					local next_tile=mget(next_x,next_y)
-					handle_item_collision(next_x,next_y,next_tile)
+					--todo uncomment
+					-- handle_item_collision(next_x,next_y,next_tile)
 				end
 			end
 			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
@@ -624,8 +616,18 @@ function flash_txt(txt,x,y,col)
   if(flashcount > 50)flashcount=0
 end
 
-function display_debug(msg,x,y,c)
-		print(msg,x,y,c)
+function display_debug()
+	local t=mget(player.x,player.y)
+	print("tile:"..t,0,0,8)
+	-- print("empty tiles:"..#current_room.empty_tiles,0,0,7)
+	-- print("vases:"..current_room.vases_left,0,10,7)
+	-- print("px:"..player.x..",py:"..player.y,70,0,7)
+	-- print("current room:"..current_room.number,35,10,7)
+	-- local x,y=0,0
+	-- for k,v in pairs(current_room.empty_tiles[20]) do
+	-- 		print("k:"..k.."v:"..v,x,y,7)
+	-- 		y+=10
+	-- end
 end
 __gfx__
 00000000000303300003033000000000000000000000000000033000000000000003300000000000000000000000000000000000000000000000000000000000
