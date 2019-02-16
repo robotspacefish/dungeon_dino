@@ -24,14 +24,19 @@ local rooms={}
 -->8
 -- default functions
 function _init()
+	mode="title"
+end
+
+function start_game()
 	--create all the room maps with locked door & chest tile locations
 	create_dungeon_layout()
 	--set first room
 	current_room=create_current_room(rooms[1])
 	--initialize player with starting tile position
+	setup_room(current_room)
 	player=create_player(current_room.start_x,current_room.start_y)
 
-	mode="title"
+	mode="game"
 end
 
 function _update60()
@@ -55,8 +60,18 @@ end--_draw()
 -->8
 --updates and draws
 --===== updates ===============================================================
+function upd_title()
+	if (btnp(4)) mode="instructions"
+	if (btnp(5)) start_game()
+end
+
+function upd_instructions()
+	if (btnp(5)) start_game()
+end
+
 function upd_game_setup()
-	setup_room(rooms[current_room.number+1])
+	current_room=create_current_room(rooms[current_room.number+1])
+	setup_room()
 	--todo
 	mode="game"
 end
@@ -69,15 +84,6 @@ function upd_game()
 	end
 	-- vases_left=#vases --todo uncomment
 end
-
-function upd_title()
-	if (btnp(4)) mode="instructions"
-	if (btnp(5)) start_game(rooms[1])
-end
-
-function upd_instructions()
-	if (btnp(5)) start_game(rooms[1])
-end
 --============== draws ========================================================
 function draw_instructions()
 	print("instructions",40,8,7)
@@ -86,6 +92,7 @@ function draw_instructions()
 end
 
 function draw_game()
+	cls()
 		-- map(current_room.x,current_room.y,0,16)
 		map()
 		-- camera(current_room.x*8,current_room.y*8)
@@ -257,11 +264,6 @@ anims={
 }
 -->8
 --====== misc and helper functions ======================================
-function start_game(room)
-	setup_room(room)
-	mode="game"
-end
-
 --x,y,sx,sy,n,mh,mb,ch,lds
 function create_dungeon_layout()
 	--todo create more rooms efficiently
@@ -483,9 +485,9 @@ function create_heal(x,y)
 	})
 end
 --====== setup room ==============
-function setup_room(room)
+function setup_room()
 	--set the current room to the next room in the rooms table
-	current_room=create_current_room(room)
+	-- current_room=create_current_room(room)
 	setup_vases(current_room)
 	setup_room_items(current_room)
 	-- place_vases_in_room(current_room.layout)
@@ -653,27 +655,15 @@ function game_over()
 end
 
 function reset_game()
-	setup_room(rooms[1])
-	player.gems=0
-	player.keys=0
-	player.health=3
-	player.master_key=0
-	--set player start position
-	player.x=current_room.start_x
-	player.y=current_room.start_y
-	player.direction=0
-
-	local c
-	for c in all(current_room.chests) do
-		mset(c.x,c.y,chest_spr[2])
+	clear_table(game_objects)
+	--reset original map sprites
+	for room in all(rooms) do
+		for t in all(room.layout) do
+			mset(t.x,t.y,t.spr)
+		end
 	end
-
-	--reset locked doors
-	local d
-	for d in all(current_room.locked_doors) do
-		mset(d.x,d.y,mget(d.x,d.y)-1)
-	end
-	mode="game"
+	clear_table(current_room)
+	start_game()
 end
 --
 -- function copy_table(ot)
@@ -684,6 +674,12 @@ end
 -- 	end
 -- 	return nt
 -- end
+
+function clear_table(t)
+	for item in all(t) do
+		del(t,item)
+	end
+end
 
 function flash_txt(txt,x,y,col)
   if(flashcount<25)print(txt,x,y,col)
@@ -709,7 +705,8 @@ function display_debug()
 	-- 		print(obj.x..","..obj.y,20,10,8)
 	-- 	end
 	-- end
-		print(#game_objects,0,0,7)
+		-- print(#game_objects,0,0,7)
+		-- print(rooms[2].x..rooms[2].y,0,0,7)
 	-- print("empty tiles:"..#current_room.empty_tiles,0,0,7)
 	-- print("vases:"..current_room.vases_left,0,10,7)
 	-- print("px:"..player.x..",py:"..player.y,70,0,7)
