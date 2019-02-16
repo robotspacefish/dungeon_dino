@@ -114,12 +114,19 @@ function has_flag(next_tile,flag)
 	return false
 end
 
-function handle_item_collision(next_x,next_y,next_tile)
+function is_item_collision(next_x,next_y)
 	for obj in all(game_objects) do
-		if next_x==obj.x and next_y==obj.y then
-			if obj.name=="vase" then
-				-- del(game_objects, obj)
-				--player should not be able to walk unless vase is smashed
+		if (next_x==obj.x and next_y==obj.y) return obj
+	end
+	return nil
+end
+
+function handle_item_collision(obj)
+				if obj.name=="vase" then
+					--todo
+				del(game_objects, obj)
+				current_room.vases_left-=1
+				mset(obj.x,obj.y,sm_vase_spr[4])
 			end
 
 			if obj.name=="heal" then
@@ -129,8 +136,6 @@ function handle_item_collision(next_x,next_y,next_tile)
 			if obj.name=="bomb" then
 				--todo
 			end
-		end
-	end
 end
 --
 -- function handle_item_collision(next_x,next_y,next_tile)
@@ -369,15 +374,32 @@ function create_player(x,y)
 		-- 	self.y=current_room.start_y
 		-- 	self.direction=0
 		-- end,
+		action=function(self)
+			--check for collision with item
+			local dx,dy=0,0
+			if (self.direction==0) dx=-1
+			if (self.direction==1) dx=1
+			if (self.direction==2) dy=-1
+			if (self.direction==3) dy=1
+
+			local nx,ny=self.x+dx,self.y+dy
+
+			item=is_item_collision(nx,ny)
+			if (item ~=nil)	handle_item_collision(item)
+		end,
+		heal=function(self)
+			if self.health<3 and self.heal>0 then
+				sfx(8)
+				self.health+=1
+				self.heal-=1
+			else
+				sfx(9)
+			end
+		end,
 		take_turn=function(self,dir_x,dir_y)
 			local next_x,next_y=self.x+dir_x,self.y+dir_y
 			local next_tile=mget(next_x,next_y)
-
-			handle_item_collision(next_x,next_y,next_tile)
-
-			--todo this
-			-- if not (has_flag(next_tile,0)) self:walk()
-			if has_flag(next_tile,0) then
+			if has_flag(next_tile,0) then --walk
 				sfx(0)
 				self.x=next_x
 				self.y=next_y
@@ -385,47 +407,68 @@ function create_player(x,y)
 			else
 				obstacle_counter+=1
 				if (obstacle_counter>=2) sfx(6)
+				handle_item_collision(next_x,next_y,next_tile)
 			end
 		end,--take_turn
 		draw=function(self)
 			spr(getframe(self.sprites,self.direction),self.x*8+self.o_x,self.y*8+self.o_y,1,1,self.flip)
 		end,--draw
 		update=function(self)
-			local i
 			local dir_x={-1,1,0,0} --movement amounts in each direction
 			local dir_y={0,0,-1,1} --l,r,u,d
-			local next_x,next_y
+			local nx,ny
+			local can_walk=false
+			local i
 			for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
-
-				if btnp(i) and i<=3 then
-					self:take_turn(dir_x[i+1],dir_y[i+1])
-					self.direction=i --player is facing l=0,r=1,u=2,d=3
+				if (btnp(i) and i<=3) then
+					nx,ny=self.x+dir_x[i+1],self.y+dir_y[i+1]
+					can_walk=has_flag(mget(nx,ny),0)
 					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
-				elseif btnp(i) and i==4 then
-					--use healing item if possible
-					if self.health<3 and self.heal>0 then
-						sfx(8)
-						self.health+=1
-						self.heal-=1
-					else
-						sfx(9)
-					end
-				-- elseif btnp(i) and i==5 then
-				-- 	--todo refactor
-				-- 	local dx,dy=0,0
-				-- 	if self.direction==0 then
-				-- 		dx=-1 dy=0
-				-- 	elseif self.direction==1 then
-				-- 		dx=1 dy=0
-				-- 	elseif self.direction==2 then
-				-- 		dx=0 dy=-1
-				-- 	elseif self.direction==3 then
-				-- 		dx=0 dy=1
-				-- 	end
-				-- 	local next_x,next_y=self.x+dx,self.y+dy
-				-- 	local next_tile=mget(next_x,next_y)
+					self.direction=i --player is facing l=0,r=1,u=2,d=3
 				end
-			end
+				if (btnp(i) and i==4)	self:heal()
+				if (btnp(i) and i==5) self:action()
+
+				if can_walk then
+					self.x=nx
+					self.y=ny
+				end
+
+					-- --todo refactor
+					-- local dx,dy=0,0
+					-- if self.direction==0 then
+					-- 	dx=-1 dy=0
+					-- elseif self.direction==1 then
+					-- 	dx=1 dy=0
+					-- elseif self.direction==2 then
+					-- 	dx=0 dy=-1
+					-- elseif self.direction==3 then
+					-- 	dx=0 dy=1
+					-- end
+					-- local next_x,next_y=self.x+dx,self.y+dy
+					-- local next_tile=mget(next_x,next_y)
+				--todo
+			end --for loop
+		-- next_x=self.x+dx
+		-- next_y=self.x+dy
+		--check collisions
+		-- local nt=mget(self.x+dx,self.y+dy)
+
+		-- local next_tile=mget(next_x,next_y)
+		-- if has_flag(nt,0) then --walk
+			-- sfx(0)x
+			-- self.x+=dx
+			-- self.y+=dy
+		-- 	-- obstacle_counter=0
+		-- else
+		-- 	-- obstacle_counter+=1
+		-- 	-- if (obstacle_counter>=2) sfx(6)
+		-- 	local item=is_item_collision(self.x+dx,self.y+dy)
+		-- 	-- if (item ~=nil)	handle_item_collision(item)
+		-- 	if (item ~=nil) and action_btn	then
+		-- 		mset(obj.x,obj.y,sm_vase_spr[4])
+		-- 	end
+		-- end
 
 			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
 		end--update
@@ -476,8 +519,7 @@ function setup_vases(c_room)
 			local v_spr=vase_types[flr(rnd(2))+1]
 			create_vase(t.x,t.y,v_spr)
 			del(c_room.empty_tiles,t)
-			-- fset(192,0,true)
-			mset(t.x,t.y,0)
+			mset(t.x,t.y,0) --set transparent sprite on tile
 			-- total_vases-=1 --todo
 		end
 			-- if total_vases==0 then break end --todo
@@ -663,7 +705,7 @@ function display_debug()
 	-- end
 
 	-- print("empty tiles:"..#current_room.empty_tiles,0,0,7)
-	-- print("vases:"..current_room.vases_left,0,10,7)
+	print("vases:"..current_room.vases_left,0,10,7)
 	-- print("px:"..player.x..",py:"..player.y,70,0,7)
 	-- print("current room:"..current_room.number,35,10,7)
 	-- local x,y=0,0
@@ -961,4 +1003,3 @@ __music__
 00 00000000
 00 00000000
 00 00000000
-
