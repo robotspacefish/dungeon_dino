@@ -302,31 +302,32 @@ function create_current_room(room)
 		gems_collected=0,
 		min_gems_needed=0,
 		vases_left=0,
-		empty_tiles={},
-		layout={},
+		-- empty_tiles={},
+		-- layout={},
 		vase_locs={},
 		heart_locs={},
 		bomb_locs={}
 	}
+
 	for k,v in pairs(room) do
 		obj[k]=v
 	end
 
-	local room_map={}
-	local x,y
-	for x=room.x,room.x+15 do
-		for y=room.y,room.y+15 do
-			local tile={}
-			tile.x=x
-			tile.y=y
-			tile.spr=mget(x,y)
-			add(room_map,tile)
-			for f in all(floor_spr) do --incase more floor tiles are added
-				if tile.spr==f then add(obj.empty_tiles,{x=tile.x,y=tile.y}) end
-			end
-		end
-	end
-	add(obj.layout,room_map)
+	-- local room_map={}
+	-- local x,y
+	-- for x=room.x,room.x+15 do
+	-- 	for y=room.y,room.y+15 do
+	-- 		local tile={}
+	-- 		tile.x=x
+	-- 		tile.y=y
+	-- 		tile.spr=mget(x,y)
+	-- 		add(room_map,tile)
+	-- 		for f in all(floor_spr) do --incase more floor tiles are added
+	-- 			if tile.spr==f then add(obj.empty_tiles,{x=tile.x,y=tile.y}) end
+	-- 		end
+	-- 	end
+	-- end
+	-- add(obj.layout,room_map)
 	return obj
 end
 
@@ -340,8 +341,23 @@ function create_room(x,y,sx,sy,n,mh,mb,ch,lds)
 		max_heal=mh,
 		max_bombs=mb,
 		chests=ch,
-		locked_doors=lds
+		locked_doors=lds,
+		empty_tiles={},
+		layout={}
 	}
+
+	for x=x,x+15 do
+		for y=y,y+15 do
+			local tile={}
+			tile.x=x
+			tile.y=y
+			tile.spr=mget(x,y)
+			add(obj.layout,tile)
+			for f in all(floor_spr) do --incase more floor tiles are added
+				if tile.spr==f then add(obj.empty_tiles,{x=tile.x,y=tile.y}) end
+			end
+		end
+	end
 
 	add(rooms,obj)
 	return obj
