@@ -109,56 +109,75 @@ end
 
 -->8
 --===== collision functions ======================================
-function is_collision(next_tile,flag)
+function has_flag(next_tile,flag)
 	if fget(next_tile,flag) then return true end
 	return false
 end
 
 function handle_item_collision(next_x,next_y,next_tile)
-	--vase
-	if is_collision(next_tile,1) then
-		if next_tile==lg_vase_spr[1] then
-			sfx(1)
-		elseif next_tile==sm_vase_spr[1] then
-			sfx(2)
-		end
-
-		check_vase_item(next_x,next_y)
-		--remove vase from map
-		--todo delete vase from game_objects
-		--todo if heart then don't leave a smashed vase behind
-		mset(next_x,next_y,lg_vase_spr[4])
-		--remove vase from vases table
-		local v
-			for v in all(vases) do
-				if v.x==next_x and v.y==next_y then
-					del(vases,v)
-				end
+	for obj in all(game_objects) do
+		if next_x==obj.x and next_y==obj.y then
+			if obj.name=="vase" then
+				-- del(game_objects, obj)
+				--player should not be able to walk unless vase is smashed
 			end
-	end
 
-	--chest contaning key
-	if is_collision(next_tile,2) then
-		sfx(5)
-		player.keys+=1
-		--empty chest sprite
-		mset(next_x,next_y,chest_spr[1])
-	end
+			if obj.name=="heal" then
+				--todo
+			end
 
-	--locked door
-	if is_collision(next_tile,7) and player.keys>0 then
-		sfx(4)
-		--change tile in location to unlocked door color
-		mset(next_x,next_y,next_tile+1)
-		--remove key from inventory
-		player.keys-=1
-	end
-
-	--goal door
-	if is_collision(next_tile,3) and player.master_key==1 then
-		mode="setup_room"
+			if obj.name=="bomb" then
+				--todo
+			end
+		end
 	end
 end
+--
+-- function handle_item_collision(next_x,next_y,next_tile)
+-- 	--vase
+-- 	if is_collision(next_tile,1) then
+-- 		if next_tile==lg_vase_spr[1] then
+-- 			sfx(1)
+-- 		elseif next_tile==sm_vase_spr[1] then
+-- 			sfx(2)
+-- 		end
+--
+-- 		check_vase_item(next_x,next_y)
+-- 		--remove vase from map
+-- 		--todo delete vase from game_objects
+-- 		--todo if heart then don't leave a smashed vase behind
+-- 		mset(next_x,next_y,lg_vase_spr[4])
+-- 		--remove vase from vases table
+-- 		local v
+-- 			for v in all(vases) do
+-- 				if v.x==next_x and v.y==next_y then
+-- 					del(vases,v)
+-- 				end
+-- 			end
+-- 	end
+--
+-- 	--chest contaning key
+-- 	if is_collision(next_tile,2) then
+-- 		sfx(5)
+-- 		player.keys+=1
+-- 		--empty chest sprite
+-- 		mset(next_x,next_y,chest_spr[1])
+-- 	end
+--
+-- 	--locked door
+-- 	if is_collision(next_tile,7) and player.keys>0 then
+-- 		sfx(4)
+-- 		--change tile in location to unlocked door color
+-- 		mset(next_x,next_y,next_tile+1)
+-- 		--remove key from inventory
+-- 		player.keys-=1
+-- 	end
+--
+-- 	--goal door
+-- 	if is_collision(next_tile,3) and player.master_key==1 then
+-- 		mode="setup_room"
+-- 	end
+-- end
 
 -->8
 --===== ui functions ======================================
@@ -257,8 +276,7 @@ end
 			end,
 		draw=function(self)
 			--do nothing
-		end,
-		--todo handle collision
+		end
 	}
 	--add additional properties
 	local k,v
@@ -324,6 +342,7 @@ end
 
 function create_player(x,y)
 	return create_game_object("player",x,y,{
+		--====== player variables =======================================
 		o_x=0,
 		o_y=0,
 		s_o_x=0,
@@ -340,6 +359,7 @@ function create_player(x,y)
 		gems=0,
 		health=3,
 		heal=0,
+		--====== player methods ==========================================
 		-- setup=function(self)
 		-- 	--reset keys for next room
 		-- 	self.master_key=0
@@ -349,12 +369,15 @@ function create_player(x,y)
 		-- 	self.y=current_room.start_y
 		-- 	self.direction=0
 		-- end,
-		move=function(self,dir_x,dir_y)
+		take_turn=function(self,dir_x,dir_y)
 			local next_x,next_y=self.x+dir_x,self.y+dir_y
 			local next_tile=mget(next_x,next_y)
 
-			-- move if next tile is not a wall or locked door
-			if not is_collision(next_tile,0) then
+			handle_item_collision(next_x,next_y,next_tile)
+
+			--todo this
+			-- if not (has_flag(next_tile,0)) self:walk()
+			if has_flag(next_tile,0) then
 				sfx(0)
 				self.x=next_x
 				self.y=next_y
@@ -363,18 +386,19 @@ function create_player(x,y)
 				obstacle_counter+=1
 				if (obstacle_counter>=2) sfx(6)
 			end
-		end,
+		end,--take_turn
 		draw=function(self)
 			spr(getframe(self.sprites,self.direction),self.x*8+self.o_x,self.y*8+self.o_y,1,1,self.flip)
-		end,
+		end,--draw
 		update=function(self)
 			local i
+			local dir_x={-1,1,0,0} --movement amounts in each direction
+			local dir_y={0,0,-1,1} --l,r,u,d
+			local next_x,next_y
 			for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
-				local dir_x={-1,1,0,0} --movement amounts in each direction
-				local dir_y={0,0,-1,1} --l,r,u,d
+
 				if btnp(i) and i<=3 then
-					-- player.move(dir_x[i+1],dir_y[i+1])
-					self:move(dir_x[i+1],dir_y[i+1])
+					self:take_turn(dir_x[i+1],dir_y[i+1])
 					self.direction=i --player is facing l=0,r=1,u=2,d=3
 					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
 				elseif btnp(i) and i==4 then
@@ -386,26 +410,25 @@ function create_player(x,y)
 					else
 						sfx(9)
 					end
-				elseif btnp(i) and i==5 then
-					--todo refactor
-					local dx,dy=0,0
-					if self.direction==0 then
-						dx=-1 dy=0
-					elseif self.direction==1 then
-						dx=1 dy=0
-					elseif self.direction==2 then
-						dx=0 dy=-1
-					elseif self.direction==3 then
-						dx=0 dy=1
-					end
-					local next_x,next_y=self.x+dx,self.y+dy
-					local next_tile=mget(next_x,next_y)
-					--todo uncomment
-					-- handle_item_collision(next_x,next_y,next_tile)
+				-- elseif btnp(i) and i==5 then
+				-- 	--todo refactor
+				-- 	local dx,dy=0,0
+				-- 	if self.direction==0 then
+				-- 		dx=-1 dy=0
+				-- 	elseif self.direction==1 then
+				-- 		dx=1 dy=0
+				-- 	elseif self.direction==2 then
+				-- 		dx=0 dy=-1
+				-- 	elseif self.direction==3 then
+				-- 		dx=0 dy=1
+				-- 	end
+				-- 	local next_x,next_y=self.x+dx,self.y+dy
+				-- 	local next_tile=mget(next_x,next_y)
 				end
 			end
+
 			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
-		end
+		end--update
 	})
 end
 
@@ -452,6 +475,9 @@ function setup_vases(c_room)
 			c_room.vases_left+=1
 			local v_spr=vase_types[flr(rnd(2))+1]
 			create_vase(t.x,t.y,v_spr)
+			del(c_room.empty_tiles,t)
+			-- fset(192,0,true)
+			mset(t.x,t.y,0)
 			-- total_vases-=1 --todo
 		end
 			-- if total_vases==0 then break end --todo
@@ -616,9 +642,26 @@ function flash_txt(txt,x,y,col)
   if(flashcount > 50)flashcount=0
 end
 
+function for_each_game_object(name,callback)
+	local obj
+	for obj in all(game_objects) do
+		if obj.name==name then
+			callback(obj)
+		end
+	end
+end
+
 function display_debug()
-	local t=mget(player.x,player.y)
-	print("tile:"..t,0,0,8)
+	-- local t=mget(player.x,player.y)
+	-- print("tile:"..t,0,0,8)
+	-- -- print(collision,0,30,8)
+	-- for obj in all(game_objects) do
+	-- 	if obj.name=="vase" and player.x == obj.x and player.y == obj.y then
+	-- 		print(obj.name,0,10,8)
+	-- 		print(obj.x..","..obj.y,20,10,8)
+	-- 	end
+	-- end
+
 	-- print("empty tiles:"..#current_room.empty_tiles,0,0,7)
 	-- print("vases:"..current_room.vases_left,0,10,7)
 	-- print("px:"..player.x..",py:"..player.y,70,0,7)
@@ -758,8 +801,8 @@ __gfx__
 000000000000000000000000666666602222222000000000000000000000000000000000000000000000000000000000555000004440000099900000aaa00000
 000000006606606020222020666666602222222000000000000000000000000000000000000000000000000000000000555050504440404099909090aaa0a0a0
 __gff__
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000003020202000000000000000000000000030202020000000000000000000001051313000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010101010000000000000000000049000101010101010100000020208100490001010101010101010101008181004900010101010000000000000081810049
+0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000002020203000000000000000000000000020202030000000000000000000000041212000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000048010000000000000000000020218001480000000000000000000000008080014800000001010000000000000080800148
 __map__
 00000000000000000000000000000000c0c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000c0c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
