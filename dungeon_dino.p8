@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 --============= sprites ===============
-local floor_spr={192,208}
+local floor_spr={192}
 local bomb_spr={70}
 local key_spr=80
 local heal_spr=115
@@ -26,6 +26,8 @@ local rooms={}
 function _init()
 	player=create_player(1,3)
 	create_dungeon_layout()
+	--set first room
+	current_room=create_current_room(rooms[1])
 	mode="title"
 end
 
@@ -52,6 +54,7 @@ end--_draw()
 --===== updates ===============================================================
 function upd_game_setup()
 	setup_room(rooms[current_room.number+1])
+	-- setup_room(current_room)
 	--todo
 	player.x=current_room.start_x
 	player.y=current_room.start.y
@@ -83,15 +86,17 @@ function draw_instructions()
 end
 
 function draw_game()
-		map(current_room.x,current_room.y,0,16)
-		camera(current_room.x*8,current_room.y*8)
+		-- map(current_room.x,current_room.y,0,16)
+		map()
+		-- camera(current_room.x*8,current_room.y*8)
 		for obj in all(game_objects) do
 			obj:draw()
 		end
-		ui()
 
-		--debug
-		print(#current_room.empty_tiles,0,0,8)
+		--todo uncomment
+		-- ui()
+
+		display_debug()
 end
 
 function draw_title()
@@ -120,7 +125,7 @@ function handle_item_collision(next_x,next_y,next_tile)
 
 		check_vase_item(next_x,next_y)
 		--remove vase from map
-		-- mset(next_x,next_y,192)
+		--todo delete vase from game_objects
 		--todo if heart then don't leave a smashed vase behind
 		mset(next_x,next_y,lg_vase_spr[4])
 		--remove vase from vases table
@@ -273,22 +278,10 @@ function create_current_room(room)
 		min_gems_needed=0,
 		vases_left=0,
 		empty_tiles={},
-		layout={}
-			-- get_layout=function()
-		-- 	local room_map={}
-		-- 	local empty_tiles={}
-		-- 	local x,y
-		-- 	for x=room.x,room.x+15 do
-		-- 		for y=room.y,room.y+15 do
-		-- 			local tile={}
-		-- 			tile.x=x
-		-- 			tile.y=y
-		-- 			tile.spr=mget(x,y)
-		-- 			add(room_map,tile)
-		-- 		end
-		-- 	end
-		-- 	return room_map
-		-- end,
+		layout={},
+		vase_locs={},
+		heart_locs={},
+		bomb_locs={}
 	}
 	for k,v in pairs(room) do
 		obj[k]=v
@@ -303,14 +296,12 @@ function create_current_room(room)
 			tile.y=y
 			tile.spr=mget(x,y)
 			add(room_map,tile)
-			for f in all(floor_spr) do
-				if tile.spr==f then add(obj.empty_tiles,{tile.x,tile.y}) end
+			for f in all(floor_spr) do --incase more floor tiles are added
+				if tile.spr==f then add(obj.empty_tiles,{x=tile.x,y=tile.y}) end
 			end
 		end
 	end
 	add(obj.layout,room_map)
-
-	-- obj.layout=obj.get_layout()
 	return obj
 end
 
@@ -409,7 +400,8 @@ function create_player(x,y)
 					end
 					local next_x,next_y=self.x+dx,self.y+dy
 					local next_tile=mget(next_x,next_y)
-					handle_item_collision(next_x,next_y,next_tile)
+					--todo uncomment
+					-- handle_item_collision(next_x,next_y,next_tile)
 				end
 			end
 			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
@@ -423,34 +415,19 @@ function getframe(anim,direction)
 		return frameset[flr(framecounter/11)%#frameset+1]
 end
 
--- function get_room_layout()
--- 	-- finds x,y, and sprite at each map tile location
--- 	local room_map={}
--- 	local x,y
--- 	for x=current_room.x,current_room.x+15 do
--- 		for y=current_room.y,current_room.y+15 do
--- 			local tile={}
--- 			tile.x=x
--- 			tile.y=y
--- 			tile.spr=mget(x,y)
--- 			add(room_map,tile)
--- 		end
--- 	end
--- 	return room_map
--- end
-
+function create_bomb(x,y)
+	return create_game_object("bomb",x,y)
+end
 --====== setup room ==============
 function setup_room(room)
+	--set the current room to the next room in the rooms table
 	current_room=create_current_room(room)
+	setup_vases(current_room)
 	setup_room_items(current_room)
 	-- place_vases_in_room(current_room.layout)
 	-- vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
 	-- place_room_items()
 	current_room.min_gems_needed=flr(current_room.gems/2)
-end
-
-function create_bomb(x,y)
-	return create_game_object("bomb",x,y)
 end
 
 -- function get_empty_floor_tiles(c_room)
@@ -464,41 +441,49 @@ end
 -- end
 
 function setup_vases(c_room)
-
-	--todo move vase stuff from setup_room_items
+	--todo iterate over tiles randomly so vases are more spread around
+	local vase_types={lg_vase_spr[1],sm_vase_spr[1]}
+	--todo play with this min/max
+	-- local total_vases=flr(rnd(#c_room.empty_tiles/3))+#c_room.empty_tiles/2
+	local t
+	for t in all(c_room.empty_tiles) do
+		local r=flr(rnd(5)) --if 0, place a vase, otherwise don't
+		if r==0 then
+			c_room.vases_left+=1
+			local v_spr=vase_types[flr(rnd(2))+1]
+			create_vase(t.x,t.y,v_spr)
+			-- total_vases-=1 --todo
+		end
+			-- if total_vases==0 then break end --todo
+	end
 end
 
 function setup_room_items(c_room)
-	--todo iterate over tiles randomly so vases are more spread around
-	-- empty_tiles=get_empty_floor_tiles(c_room)
-	--todo play with this min/max
-	local total_vases=flr(rnd(#c_room.empty_tiles/3))+#c_room.empty_tiles/2
-	local tile
-	for tile in all(c_room.empty_tiles) do
-			local r=flr(rnd(5)) --if 0, place a vase, otherwise don't
-			if r==0 then
-				c_room.vases_left+=1 -- if vase is placed, add to vase count
-				-- create_vase(tile.x,tile.y)
-			end
-	end
 
-	-- if vase is placed, randomly place an item or no item inside
+end
+
+
+
+	-- 			c_room.vases_left+=1 -- if vase is placed, add to vase count
+				-- create_vase(tile.x,tile.y)
+				-- mset(tile.x,tile.y,lg_vase_spr[1])
+			-- end
+
+			-- local total_vases=flr(rnd(1))+6
+			-- if vase is placed, randomly place an item or no item inside
 	-- if max bombs/health are placed don't place anymore bombs/health
 	-- if max bombs/health are not reached, iterate over vases that have been placed with no items and replace.
 	-- if max bombs/health are still not reached, iterate over vases with gems and replace
 	-- store current_room.item_layout
-end
 
 --===== vase functions ====================================
-function create_vase(x,y) --todo randomly generate x,y
+function create_vase(x,y,v_spr) --todo randomly generate x,y
 	return create_game_object("vase",x,y,{
+		v_spr=v_spr,
+		is_smashed=false,
 		draw=function(self)
-			local random = flr(rnd(1)+2)
-			if random==1 then
-				spr(lg_vase_spr[1],self.x,self.y)
-			else
-				spr(sm_vase_spr[1],self.x,self.y)
-			end
+			--todo random vase size
+			spr(v_spr,self.x*8,self.y*8)
 		end
 	})
 end
@@ -536,76 +521,54 @@ function place_room_items()
 		end
 	end
 end
-
-function init_vases_for_items(room)
-	local vase={}
-	local t
-	for t in all(room) do
-		if t.spr==sm_vase_spr[1] or t.spr==lg_vase_spr[1] then
-			local v={}
-			v.x=t.x
-			v.y=t.y
-			v.spr=t.spr
-			v.bomb=false
-			v.health=false
-			v.gem=false
-			v.item=""
-			add(vase,v)
-		end
-	end
-	return vase
-end
-
-function check_vase_item(x,y)
-	local v
-	for v in all(vases) do
-		if v.x==x and v.y==y then
-			if v.bomb then
-				--todo sfx
-				if player.health>0 then
-					player.health-=1
-				end
-				if player.health==0 then mode="game_over" end
-			elseif v.health then
-				if player.health<3 then
-					sfx(8)
-					player.health+=1
-				else
-					sfx(10)
-					player.heal+=1
-				end
-			elseif v.gem then
-				sfx(3)
-				player.gems+=1
-				current_room.gems-=1
-				current_room.gems_collected+=1
-				if current_room.gems<0 then current_room.gems=0 end
-			end
-		end
-	end
-end
-
-function place_vase()
-
-end
-
-function place_vases_in_room(room)
-	local total_vases=flr(rnd(1))+6
-	local vase_types={lg_vase_spr[1],sm_vase_spr[1]}
-	--todo init vases in here
-	local tile
-	for tile in all(room) do
-		if tile.spr==192 or tile.spr==208 then
-			local r=flr(rnd(5)) --if 0, place a vase, otherwise don't
-			if r==0 then
-				tile.spr=vase_types[flr(rnd(2))+1]
-				mset(tile.x,tile.y,tile.spr)
-				total_vases-=1 --todo
-			end
-		end
-		if total_vases==0 then break end --todo
-	end
-end
+--
+-- function init_vases_for_items(room)
+-- 	local vase={}
+-- 	local t
+-- 	for t in all(room) do
+-- 		if t.spr==sm_vase_spr[1] or t.spr==lg_vase_spr[1] then
+-- 			local v={}
+-- 			v.x=t.x
+-- 			v.y=t.y
+-- 			v.spr=t.spr
+-- 			v.bomb=false
+-- 			v.health=false
+-- 			v.gem=false
+-- 			v.item=""
+-- 			add(vase,v)
+-- 		end
+-- 	end
+-- 	return vase
+-- end
+--
+-- function check_vase_item(x,y)
+-- 	local v
+-- 	for v in all(vases) do
+-- 		if v.x==x and v.y==y then
+-- 			if v.bomb then
+-- 				--todo sfx
+-- 				if player.health>0 then
+-- 					player.health-=1
+-- 				end
+-- 				if player.health==0 then mode="game_over" end
+-- 			elseif v.health then
+-- 				if player.health<3 then
+-- 					sfx(8)
+-- 					player.health+=1
+-- 				else
+-- 					sfx(10)
+-- 					player.heal+=1
+-- 				end
+-- 			elseif v.gem then
+-- 				sfx(3)
+-- 				player.gems+=1
+-- 				current_room.gems-=1
+-- 				current_room.gems_collected+=1
+-- 				if current_room.gems<0 then current_room.gems=0 end
+-- 			end
+-- 		end
+-- 	end
+-- end
 
 function game_over()
 	cls()
@@ -653,8 +616,18 @@ function flash_txt(txt,x,y,col)
   if(flashcount > 50)flashcount=0
 end
 
-function display_debug(msg,x,y,c)
-		print(msg,x,y,c)
+function display_debug()
+	local t=mget(player.x,player.y)
+	print("tile:"..t,0,0,8)
+	-- print("empty tiles:"..#current_room.empty_tiles,0,0,7)
+	-- print("vases:"..current_room.vases_left,0,10,7)
+	-- print("px:"..player.x..",py:"..player.y,70,0,7)
+	-- print("current room:"..current_room.number,35,10,7)
+	-- local x,y=0,0
+	-- for k,v in pairs(current_room.empty_tiles[20]) do
+	-- 		print("k:"..k.."v:"..v,x,y,7)
+	-- 		y+=10
+	-- end
 end
 __gfx__
 00000000000303300003033000000000000000000000000000033000000000000003300000000000000000000000000000000000000000000000000000000000
@@ -788,20 +761,20 @@ __gff__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000003020202000000000000000000000000030202020000000000000000000001051313000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010101010000000000000000000049000101010101010100000020208100490001010101010101010101008181004900010101010000000000000081810049
 __map__
-e4d3d3d3e4d3d3d3d3e3d3d3d3d3d3e3c0c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d1c0c0c0d1c0c0c071d2c0c0c0c071d2c0c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-e4d3dcd3d1c0c0c0c0d2c0c0c0c0c0d2e6e7e7e7e7e7e7e7e7e7e7e7e7dfe7e5e4d3d3d3d3d3d3d3d3d3d3d3d3d3d3e30000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d1c0c0c0d1c0c0c0c0d2c0c0c0c0c0d2e9d0d0d0d0d0d0c0c0c0c0d0d0d0d0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d1c0c0c0e4d3d3ddd3d3c0c0e4d3d3e3e9d0d0d0d0c0c0d0d0c0c0c0d0d0d0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d1c0c0c0d1c0c0c0c0c0c0c0fdc0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d1c0e4d3d3e3c0c0c0c0c0c0d1c0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d1c0d171c0d2c0e4d3ddd3d3d1c0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2000000000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d1c0d1c0c0d2c0d1c0c0c0c0d1c0c0fce9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d200000000000000e0e0e0e0e0e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d1c0d3d3ded3c0d1c0c0c0c0d1c0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000e0e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d1c0c0c0c0c0c0d1c0c071c0d1c0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c00000d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c00000d20000000000000000c90000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000d6eaeaeaeaeaeaeaeaeaeaeaeaeaead5e1c3c3c3c3c3c3c3c3c3c3c3c3c3c3e20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000c0c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000c0c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+e4d3d3d3e4d3d3d3d3e3d3d3d3d3d3e3e6e7e7e7e7e7e7e7e7e7e7e7e7dfe7e5e4d3d3d3d3d3d3d3d3d3d3d3d3d3d3e30000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d1d0d0d0d1c0c0c071d2c0c0c0c071d2e9d0d0d0d0d0d0c0c0c0c0d0d0d0d0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+e4d3dcd3d1c0c0c0c0d2c0c0c0c0c0d2e9d0d0d0d0c0c0d0d0c0c0c0d0d0d0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d1c0c0c0d1c0c0c0c0d2c0c0c0c0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d1c0c0c0e4d3d3ddd3d3c0c0e4d3d3e3e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d1c0c0c0d1c0c0c0c0c0c0c0fdc0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2000000000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d1c0e4d3d3e3c0c0c0c0c0c0d1c0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d200000000000000e0e0e0e0e0e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d1c0d171c0d2c0e4d3ddd3d3d1c0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000e0e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d1c0d1c0c0d2c0d1c0c0c0c0d1c0c0fce9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c00000d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d1c0d3d3ded3c0d1c0c0c0c0d1c0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c00000d20000000000000000c90000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d1c0c0c0c0c0c0d1c0c071c0d1c0c0d2e9d0d0c0c0c0c0c0c0c0c0c0c0c0c0e8d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d6eaeaeaeaeaeaeaeaeaeaeaeaeaead5e1c3c3c3c3c3c3c3c3c3c3c3c3c3c3e20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 09e0090909090909090909090909090900000000000000000000000000000000000000000000000000000000000000c9000000000000000000000000000000000000c900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -945,4 +918,3 @@ __music__
 00 00000000
 00 00000000
 00 00000000
-
