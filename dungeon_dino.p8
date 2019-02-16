@@ -135,7 +135,7 @@ function handle_item_collision(obj)
 				mset(obj.x,obj.y,sm_vase_spr[4]) --todo lg & sm
 			end
 
-			if obj.name=="heal" then
+			if obj.name=="potion" then
 				player:heal()
 				mset(obj.x,obj.y,floor_spr[1])
 			end
@@ -244,7 +244,7 @@ function ui()
 
 	--healing item display
 	spr(heal_spr,x+40,b_y-2)
-	print(":"..player.heal,x+48,b_y,7)
+	print(":"..player.potion,x+48,b_y,7)
 	--gems display
 	local j_x=x+102
 	spr(gem_spr[1],j_x,b_y-2)
@@ -383,7 +383,7 @@ function create_player(x,y)
 		master_key=1, --todo change back to 0
 		gems=0,
 		health=3,
-		heal=0,
+		potion=0,
 		--====== player methods ==========================================
 		-- setup=function(self)
 		-- 	--reset keys for next room
