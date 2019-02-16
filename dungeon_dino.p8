@@ -24,10 +24,10 @@ local rooms={}
 -->8
 -- default functions
 function _init()
-	player=create_player(1,3)
 	create_dungeon_layout()
 	--set first room
 	current_room=create_current_room(rooms[1])
+	player=create_player(current_room.start_x,current_room.start_y)
 	mode="title"
 end
 
