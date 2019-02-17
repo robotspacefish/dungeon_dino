@@ -139,7 +139,7 @@ function handle_item_collision(obj)
 			end
 
 			if obj.name=="potion" then
-				player:heal()
+				player:heal(true)
 				mset(obj.x,obj.y,floor_spr[1])
 			end
 		del(game_objects, obj)
@@ -265,7 +265,7 @@ anims={
 --x,y,sx,sy,n,mh,mb,ch,lds
 function create_dungeon_layout()
 	--todo create more rooms efficiently
-	create_room(0,0,1,3,1,1,3,
+	create_room(0,0,1,3,1,10,3,
 													{{x=3,y=9},{x=8,y=3},{x=14,y=3},{x=10,y=12}},
 													{{x=7,y=6},{x=9,y=9},{x=12,y=7}})
 	create_room(16,0,17,3,2,1,3) --todo add chest & doors
@@ -428,32 +428,25 @@ function create_player(x,y)
 						mode="setup_room"
 					end
 		end,
-		heal=function(self)
-			if self.health<3 and self.potion>0 then
-				sfx(8)
-				self.health+=1
-				self.potion-=1
-			elseif self.health==3 then
-				sfx(10)
-				self.potion+=1
+		heal=function(self,pickup)
+			if pickup then
+				if self.health<3 then
+					sfx(8)
+					self.health+=1
+				else
+					sfx(10)
+					self.potion+=1
+				end
 			else
-				sfx(9)
+				if self.health<3 and self.potion>0 then
+					sfx(8)
+					self.potion-=1
+					self.health+=1
+				else
+					sfx(9)
+				end
 			end
 		end,
-		take_turn=function(self,dir_x,dir_y)
-			local next_x,next_y=self.x+dir_x,self.y+dir_y
-			local next_tile=mget(next_x,next_y)
-			if has_flag(next_tile,0) then --walk
-				sfx(0)
-				self.x=next_x
-				self.y=next_y
-				obstacle_counter=0
-			else
-				obstacle_counter+=1
-				if (obstacle_counter>=2) sfx(6)
-				handle_item_collision(next_x,next_y,next_tile)
-			end
-		end,--take_turn
 		draw=function(self)
 			spr(getframe(self.sprites,self.direction),self.x*8+self.o_x,self.y*8+self.o_y,1,1,self.flip)
 		end,--draw
@@ -475,9 +468,7 @@ function create_player(x,y)
 					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
 					self.direction=i --player is facing l=0,r=1,u=2,d=3
 				end
-				--todo uncomment
-				-- if (btnp(i) and i==4)	self:heal()
-				if (btnp(i) and i==4)	mode="game_over"
+				if (btnp(i) and i==4)	self:heal(false)
 				if (btnp(i) and i==5) self:action()
 
 				if can_walk then
@@ -739,7 +730,7 @@ function for_each_game_object(name,callback)
 end
 
 function display_debug()
-
+	print(player.health,0,0,7)
 	-- local t=mget(player.x,player.y)
 	-- print("tile:"..t,0,0,8)
 	-- -- print(collision,0,30,8)
