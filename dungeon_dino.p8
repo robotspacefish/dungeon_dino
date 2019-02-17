@@ -100,7 +100,6 @@ function draw_game()
 			obj:draw()
 		end
 
-		--todo uncomment
 		ui()
 
 		display_debug()
@@ -132,18 +131,17 @@ function handle_item_collision(obj)
 				if obj.name=="vase" then
 					--todo vase smash sfx for different size vases
 				current_room.vases_left-=1
+				obj.is_smashed=true --todo for future use?
 				mset(obj.x,obj.y,sm_vase_spr[4]) --todo lg & sm
+
+				--check vase for bomb
+				if (obj.has_bomb) player.health-=1
 			end
 
 			if obj.name=="potion" then
 				player:heal()
 				mset(obj.x,obj.y,floor_spr[1])
 			end
-
-			if obj.name=="bomb" then
-				--todo
-			end
-
 		del(game_objects, obj)
 end
 --
@@ -477,10 +475,14 @@ function getframe(anim,direction)
 			local frameset=anim[direction+1]
 		return frameset[flr(framecounter/11)%#frameset+1]
 end
-
-function create_bomb(x,y)
-	return create_game_object("bomb",x,y)
-end
+-- todo unused, currently just adding bombs to vases via boolean has_bomb
+-- function create_bomb(x,y)
+-- 	return create_game_object("bomb",x,y,{
+-- 		draw=function(self)
+-- 			-- spr(bomb_spr[1],self.x*8,self.y*8)
+-- 		end
+-- 	})
+-- end
 
 function create_potion(x,y)
 	return create_game_object("potion",x,y,{
@@ -513,6 +515,7 @@ end
 
 function setup_vases(c_room)
 	--todo iterate over tiles randomly so vases are more spread around
+	local vases={}
 	local vase_types={lg_vase_spr[1],sm_vase_spr[1]}
 	--todo play with this min/max
 	-- local total_vases=flr(rnd(#c_room.empty_tiles/3))+#c_room.empty_tiles/2
@@ -522,17 +525,28 @@ function setup_vases(c_room)
 		if r==0 then
 			c_room.vases_left+=1
 			local v_spr=vase_types[flr(rnd(2))+1]
-			create_vase(t.x,t.y,v_spr)
+			local vase=create_vase(t.x,t.y,v_spr)
 			del(c_room.empty_tiles,t)
 			mset(t.x,t.y,0) --set transparent sprite on tile
 			-- total_vases-=1 --todo
+			add(vases,vase)
 		end
 			-- if total_vases==0 then break end --todo
+	end
+
+	--place bombs
+	local i
+	for i=1,c_room.max_bombs do
+		local random_vase=flr(rnd(#vases))+1
+		-- create_bomb(vases[random_vase].x,vases[random_vase].y)
+
+		vases[random_vase].has_bomb=true
 	end
 end
 
 --todo refactor: combine with setup_vases
 function setup_room_items(c_room)
+	-- place potion(s)
 		local heals=flr(rnd(current_room.max_heal))
 		local h
 		for h=0,heals do
@@ -561,6 +575,7 @@ end
 function create_vase(x,y,v_spr) --todo randomly generate x,y
 	return create_game_object("vase",x,y,{
 		v_spr=v_spr,
+		has_bomb=false,
 		is_smashed=false,
 		draw=function(self)
 			--todo random vase size
@@ -701,6 +716,7 @@ function for_each_game_object(name,callback)
 end
 
 function display_debug()
+
 	-- local t=mget(player.x,player.y)
 	-- print("tile:"..t,0,0,8)
 	-- -- print(collision,0,30,8)
