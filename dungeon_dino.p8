@@ -401,9 +401,32 @@ function create_player(x,y)
 			if (self.direction==3) dy=1
 
 			local nx,ny=self.x+dx,self.y+dy
-
+			local nt=mget(nx,ny)
 			item=is_item_collision(nx,ny)
 			if (item ~=nil)	handle_item_collision(item)
+
+			--chest
+			if has_flag(nt,2) then
+					sfx(5)
+					player.keys+=1
+					--empty chest sprite
+					mset(nx,ny,chest_spr[1])
+				end
+
+				--locked door
+					if has_flag(nt,7) and player.keys>0 then
+						sfx(4)
+						--change tile in location to unlocked door color
+						mset(nx,ny,nt+1)
+						--remove key from inventory
+						player.keys-=1
+					end
+
+					--todo
+					--goal door
+					if has_flag(nx,3) and player.master_key==1 then
+						mode="setup_room"
+					end
 		end,
 		heal=function(self)
 			if self.health<3 and self.potion>0 then
