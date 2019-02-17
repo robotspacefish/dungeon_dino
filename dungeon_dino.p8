@@ -265,7 +265,7 @@ anims={
 --x,y,sx,sy,n,mh,mb,ch,lds
 function create_dungeon_layout()
 	--todo create more rooms efficiently
-	create_room(0,0,1,3,1,10,3,
+	create_room(0,0,1,3,1,1,3,
 													{{x=3,y=9},{x=8,y=3},{x=14,y=3},{x=10,y=12}},
 													{{x=7,y=6},{x=9,y=9},{x=12,y=7}})
 	create_room(16,0,17,3,2,1,3) --todo add chest & doors
