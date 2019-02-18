@@ -432,7 +432,7 @@ function create_player(x,y)
 
 			--todo
 			--goal door
-			if has_flag(nx,3) and player.master_key==1 then
+			if has_flag(nt,3) and player.master_key==1 then
 				mode="setup_room"
 			end
 		end,
