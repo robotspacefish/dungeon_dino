@@ -136,6 +136,13 @@ function handle_item_collision(obj)
 
 				--check vase for bomb
 				if (obj.has_bomb) player.health-=1
+
+				--check vase for gem
+				if (obj.has_gem) then
+					player.gems+=1
+					current_room.gems_collected+=1
+					current_room.gems-=1
+				end
 			end
 
 			if obj.name=="potion" then
@@ -479,7 +486,7 @@ function create_player(x,y)
 				end
 			end --for loop
 
-			if current_room.gems_collected>0 and current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
+			if current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
 		end--update
 	})
 end
@@ -535,12 +542,12 @@ function setup_vases(c_room)
 	-- local total_vases=flr(rnd(#c_room.empty_tiles/3))+#c_room.empty_tiles/2
 	local t
 	for t in all(c_room.empty_tiles) do
-		local r=flr(rnd(5)) --if 0, place a vase, otherwise don't
-		if r==0 then
+		local r=flr(rnd(5))
+		if r==0 then --place vase
 			c_room.vases_left+=1
 			local v_spr=vase_types[flr(rnd(2))+1]
 			local vase=create_vase(t.x,t.y,v_spr)
-			del(c_room.empty_tiles,t)
+			del(c_room.empty_tiles,t) --remove empty tile from list
 			mset(t.x,t.y,0) --set transparent sprite on tile
 			-- total_vases-=1 --todo
 			add(vases,vase)
@@ -548,14 +555,38 @@ function setup_vases(c_room)
 			-- if total_vases==0 then break end --todo
 	end
 
-	--place bombs
-	local i
-	for i=1,c_room.max_bombs do
-		local random_vase=flr(rnd(#vases))+1
-		-- create_bomb(vases[random_vase].x,vases[random_vase].y)
-
-		vases[random_vase].has_bomb=true
+	local v
+	local b=c_room.max_bombs
+	for v in all(vases) do
+		local r=flr(rnd(4))
+		if r==0 then --place bomb
+			if b>0 then
+				v.has_bomb=true --place gem if max bombs placed
+				b-=1
+			else
+				v.has_gem=true --place gem
+				current_room.gems+=1
+			end
+		elseif r==2 or r==3 then
+			v.has_gem=true
+			current_room.gems+=1
+		end
 	end
+
+	--set min gems needed
+	c_room.min_gems_needed=flr(c_room.gems/2)
+	--place bombs
+	-- local i
+	-- for i=1,c_room.max_bombs do
+	-- 	local random_vase=flr(rnd(#vases))+1
+	-- 	vases[random_vase].has_bomb=true
+	-- end
+
+	--place gems
+	-- local j
+	-- for j=0,#vases do
+	-- todo
+	-- end
 end
 
 --todo refactor: combine with setup_vases
