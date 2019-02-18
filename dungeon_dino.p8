@@ -97,7 +97,7 @@ function draw_game()
 	cls()
 		-- map(current_room.x,current_room.y,0,16)
 		map()
-		-- camera(current_room.x*8,current_room.y*8)
+		camera(current_room.x*8,current_room.y*8)
 		for obj in all(game_objects) do
 			obj:draw()
 		end
