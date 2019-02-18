@@ -89,9 +89,9 @@ function upd_game()
 end
 --============== draws ========================================================
 function draw_instructions()
-	print("instructions",40,8,7)
+	print("how to play",hcenter("how to play"),8,7)
 	print("todo", 55,40,8)
-	print("press ❎ to start",32,100,11)
+	print("press ❎ to start",hcenter("press ❎ to start"),100,11)
 end
 
 function draw_game()
@@ -111,11 +111,36 @@ end
 function draw_title()
 	flashcount+=1
 	-- cls()
-	print("d u n g e o n  d i n o",21,40,3)
-	flash_txt("press ❎ to start",32,70,11)
-	print("press [z] for instructions",18,88,7)
+	-- print("d u n g e o n  d i n o",21,40,3)
+	local subtitle="gem hunter"
+	local start_txt="press ❎ to start"
+	local instruction_txt="press [z] for instructions"
+	local logo_length=98
+	-- spr(32,21,45,13,2)
+	spr(32,64-(logo_length/2),35,13,2)
+	-- print("gem hunter",50,60,7)
+	print(subtitle,hcenter(subtitle),50,7)
+	flash_txt(start_txt,hcenter(start_txt),70,11)
+	print(instruction_txt,hcenter(instruction_txt),80,7)
 end
 
+--==================== center text =============================
+function hcenter(s)
+  -- screen center minus the
+  -- string length times the
+  -- pixels in a char's width,
+  -- cut in half
+  return 64-#s*2
+end
+
+function vcenter(s)
+  -- screen center minus the
+  -- string height in pixels,
+  -- cut in half
+  return 61
+end
+
+-- ====== https://pico-8.fandom.com/wiki/Centering_Text ========
 -->8
 --===== collision functions ======================================
 function has_flag(next_tile,flag)
