@@ -463,6 +463,8 @@ function create_player(x,y)
 			local nx,ny
 			local can_walk=false
 			local i
+			local last_tile=mget(self.x,self.y)
+
 			for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
 				if (btnp(i) and i<=3) then
 					nx,ny=self.x+dir_x[i+1],self.y+dir_y[i+1]
@@ -479,6 +481,13 @@ function create_player(x,y)
 				if (btnp(i) and i==5) self:action()
 
 				if can_walk then
+					--crumble entrance door
+					--todo crumble doors facing different directions
+					local next_tile=mget(nx,ny)
+					if last_tile==220 and next_tile==192 then
+						mset(self.x,self.y,219)
+						last_tile=nil
+					end
 					sfx(0)
 					obstacle_counter=0
 					self.x=nx
