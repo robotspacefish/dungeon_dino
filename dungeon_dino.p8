@@ -414,26 +414,26 @@ function create_player(x,y)
 
 			--chest
 			if has_flag(nt,2) then
-					sfx(5)
-					player.keys+=1
-					--empty chest sprite
-					mset(nx,ny,chest_spr[1])
-				end
+				sfx(5)
+				player.keys+=1
+				--empty chest sprite
+				mset(nx,ny,chest_spr[1])
+			end
 
-				--locked door
-					if has_flag(nt,7) and player.keys>0 then
-						sfx(4)
-						--change tile in location to unlocked door color
-						mset(nx,ny,nt+1)
-						--remove key from inventory
-						player.keys-=1
-					end
+		--locked door
+			if has_flag(nt,7) and player.keys>0 then
+				sfx(4)
+				--change tile in location to unlocked door color
+				mset(nx,ny,nt+1)
+				--remove key from inventory
+				player.keys-=1
+			end
 
-					--todo
-					--goal door
-					if has_flag(nx,3) and player.master_key==1 then
-						mode="setup_room"
-					end
+			--todo
+			--goal door
+			if has_flag(nx,3) and player.master_key==1 then
+				mode="setup_room"
+			end
 		end,
 		heal=function(self,pickup)
 			if pickup then
