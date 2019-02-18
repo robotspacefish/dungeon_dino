@@ -630,6 +630,7 @@ function create_vase(x,y,v_spr) --todo randomly generate x,y
 	return create_game_object("vase",x,y,{
 		v_spr=v_spr,
 		has_bomb=false,
+		has_gem=false,
 		is_smashed=false,
 		draw=function(self)
 			--todo random vase size
