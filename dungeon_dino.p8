@@ -70,9 +70,11 @@ function upd_instructions()
 end
 
 function upd_game_setup()
+	clear_table(current_room)
 	current_room=create_current_room(rooms[current_room.number+1])
 	setup_room()
-	--todo
+	player:set_start(current_room.start_x,current_room.start_y)
+	player:reset_keys()
 	mode="game"
 end
 
@@ -390,6 +392,14 @@ function create_player(x,y)
 		health=3,
 		potion=0,
 		--====== player methods ==========================================
+		set_start=function(self,sx,sy)
+			self.x=sx
+			self.y=sy
+		end,
+		reset_keys=function(self)
+			self.master_key=0
+			self.keys=0
+		end,
 		action=function(self)
 			--check for collision with item
 			local dx,dy=0,0
