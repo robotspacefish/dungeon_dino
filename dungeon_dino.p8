@@ -206,34 +206,7 @@ end
 function ui()
 	local x=current_room.x*8+4
 	-- ======= top =======
-	-- health sprites
-	local add_to_x=0
-		--todo refactor this disaster
-	local total_full=0
-	local total_empty=0
-	local h=player.health
-	if h==3 then
-		total_full=3
-		total_empty=0
-	elseif h==2 then
-		total_full=2
-		total_empty=1
-	elseif h==1 then
-		total_full=1
-		total_empty=2
-	elseif h==0 then
-		total_full=0
-		total_empty=3
-	end
-	local i
-	for i=1,total_full do
-		spr(health_spr[1],x+add_to_x,4)
-		add_to_x+=10
-	end
-	for i=1,total_empty do
-		spr(health_spr[2],x+add_to_x,4)
-		add_to_x+=10
-	end
+	ui_health_display(x)
 
 	local location="r-"..current_room.number
 	print(location,(current_room.x*8+64)-(#location/2)-8,6,7)
@@ -495,7 +468,7 @@ function create_player(x,y)
 
 			if current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
 
-			if current_room.gems_collected==
+			--todo bonus gems
 		end--update
 	})
 end
@@ -669,6 +642,37 @@ function for_each_game_object(name,callback)
 		if obj.name==name then
 			callback(obj)
 		end
+	end
+end
+
+function ui_health_display(x)
+	-- health sprites
+	local add_to_x=0
+		--todo refactor this disaster
+	local total_full=0
+	local total_empty=0
+	local h=player.health
+	if h==3 then
+		total_full=3
+		total_empty=0
+	elseif h==2 then
+		total_full=2
+		total_empty=1
+	elseif h==1 then
+		total_full=1
+		total_empty=2
+	elseif h==0 then
+		total_full=0
+		total_empty=3
+	end
+	local i
+	for i=1,total_full do
+		spr(health_spr[1],x+add_to_x,4)
+		add_to_x+=10
+	end
+	for i=1,total_empty do
+		spr(health_spr[2],x+add_to_x,4)
+		add_to_x+=10
 	end
 end
 
