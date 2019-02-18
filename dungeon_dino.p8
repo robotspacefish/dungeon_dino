@@ -272,7 +272,7 @@ anims={
 --x,y,sx,sy,n,mh,mb,ch,lds
 function create_dungeon_layout()
 	--todo create more rooms efficiently
-	create_room(0,0,1,3,1,1,3,
+	create_room(0,0,1,3,1,1,5,
 													{{x=3,y=9},{x=8,y=3},{x=14,y=3},{x=10,y=12}},
 													{{x=7,y=6},{x=9,y=9},{x=12,y=7}})
 	create_room(16,0,17,3,2,1,3) --todo add chest & doors
@@ -280,7 +280,7 @@ function create_dungeon_layout()
 
 end
 --========== create objects ==========================================
-	function create_game_object(name,x,y,props)
+function create_game_object(name,x,y,props)
 	local obj={
 		name=name,
 		x=x,
@@ -385,20 +385,11 @@ function create_player(x,y)
 		flp=false,
 		direction=0,
 		keys=0,
-		master_key=1, --todo change back to 0
+		master_key=0, --todo change back to 0
 		gems=0,
 		health=3,
 		potion=0,
 		--====== player methods ==========================================
-		-- setup=function(self)
-		-- 	--reset keys for next room
-		-- 	self.master_key=0
-		-- 	self.keys=0
-		-- 	--set player start position
-		-- 	self.x=current_room.start_x
-		-- 	self.y=current_room.start_y
-		-- 	self.direction=0
-		-- end,
 		action=function(self)
 			--check for collision with item
 			local dx,dy=0,0
@@ -505,14 +496,6 @@ function getframe(anim,direction)
 			local frameset=anim[direction+1]
 		return frameset[flr(framecounter/11)%#frameset+1]
 end
--- todo unused, currently just adding bombs to vases via boolean has_bomb
--- function create_bomb(x,y)
--- 	return create_game_object("bomb",x,y,{
--- 		draw=function(self)
--- 			-- spr(bomb_spr[1],self.x*8,self.y*8)
--- 		end
--- 	})
--- end
 
 function create_potion(x,y)
 	return create_game_object("potion",x,y,{
@@ -524,13 +507,8 @@ end
 --====== setup room ==============
 function setup_room()
 	--set the current room to the next room in the rooms table
-	-- current_room=create_current_room(room)
 	setup_vases(current_room)
 	setup_room_items(current_room)
-	-- place_vases_in_room(current_room.layout)
-	-- vases=init_vases_for_items(current_room_map) -- find how many vases are in the room
-	-- place_room_items()
-	current_room.min_gems_needed=flr(current_room.gems/2)
 end
 
 -- function get_empty_floor_tiles(c_room)
@@ -771,27 +749,6 @@ function for_each_game_object(name,callback)
 end
 
 function display_debug()
-	print(player.health,0,0,7)
-	-- local t=mget(player.x,player.y)
-	-- print("tile:"..t,0,0,8)
-	-- -- print(collision,0,30,8)
-	-- for obj in all(game_objects) do
-	-- 	if obj.name=="vase" and player.x == obj.x and player.y == obj.y then
-	-- 		print(obj.name,0,10,8)
-	-- 		print(obj.x..","..obj.y,20,10,8)
-	-- 	end
-	-- end
-		-- print(#game_objects,0,0,7)
-		-- print(rooms[2].x..rooms[2].y,0,0,7)
-	-- print("empty tiles:"..#current_room.empty_tiles,0,0,7)
-	-- print("vases:"..current_room.vases_left,0,10,7)
-	-- print("px:"..player.x..",py:"..player.y,70,0,7)
-	-- print("current room:"..current_room.number,35,10,7)
-	-- local x,y=0,0
-	-- for k,v in pairs(current_room.empty_tiles[20]) do
-	-- 		print("k:"..k.."v:"..v,x,y,7)
-	-- 		y+=10
-	-- end
 end
 __gfx__
 00000000000303300003033000000000000000000000000000033000000000000003300000000000000000000000000000000000000000000000000000000000
