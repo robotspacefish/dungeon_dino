@@ -530,24 +530,24 @@ function setup_room()
 end
 
 function setup_vases(c_room)
-	--todo iterate over tiles randomly so vases are more spread around
 	local vases={}
 	local vase_types={lg_vase_spr[1],sm_vase_spr[1]}
-	--todo play with this min/max
-	-- local total_vases=flr(rnd(#c_room.empty_tiles/3))+#c_room.empty_tiles/2
+
+	local total_vases=flr(rnd(#c_room.empty_tiles/3))+#c_room.empty_tiles/2
+
 	local t
 	for t in all(c_room.empty_tiles) do
 		local r=flr(rnd(5))
-		if r==0 then --place vase
+		-- if r<=1 then --place vase
+		if total_vases>0  and r<=1 then
 			c_room.vases_left+=1
 			local v_spr=vase_types[flr(rnd(2))+1]
 			local vase=create_vase(t.x,t.y,v_spr)
 			del(c_room.empty_tiles,t) --remove empty tile from list
 			mset(t.x,t.y,0) --set transparent sprite on tile
-			-- total_vases-=1 --todo
+			total_vases-=1 --todo
 			add(vases,vase)
 		end
-			-- if total_vases==0 then break end --todo
 	end
 
 	local v
@@ -636,8 +636,8 @@ end
 function game_over()
 	cls()
 	camera()
-	print("game over",128/2-15,128/2-3,8)
-	print("press c to try again",128/2-30,128/2+6,7)
+	print("game over",hcenter("game over"),128/2-3,8)
+	print("press c to try again",hcenter("press c to try again"),128/2+6,7)
 	if btnp(4) then mode="reset_game" end
 end
 
