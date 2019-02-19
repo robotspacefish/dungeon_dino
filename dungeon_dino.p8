@@ -46,7 +46,7 @@ function _update60()
 	if (mode=="instructions") upd_instructions()
 	if (mode=="setup_room") upd_game_setup()
 	if (mode=="game") upd_game()
-	if (mode=="reset_game") reset_game()
+	if (mode=="reset_game") upd_reset_game()
 	if (mode=="game_over") upd_game_over()
 end--_update()
 
@@ -648,7 +648,7 @@ function upd_game_over()
 	if btnp(4) then mode="reset_game" end
 end
 
-function reset_game()
+function upd_reset_game()
 	clear_table(game_objects)
 	--reset original map sprites
 	for room in all(rooms) do
