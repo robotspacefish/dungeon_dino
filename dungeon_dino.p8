@@ -156,27 +156,39 @@ function is_item_collision(next_x,next_y)
 end
 
 function handle_item_collision(obj)
-				if obj.name=="vase" then
-					--todo vase smash sfx for different size vases
-				current_room.vases_left-=1
-				obj.is_smashed=true --todo for future use?
-				mset(obj.x,obj.y,sm_vase_spr[4]) --todo lg & sm
 
-				--check vase for bomb
-				if (obj.has_bomb) player.health-=1
-				if (player.health==0) mode="game_over"
-				--check vase for gem
-				if (obj.has_gem) then
-					player.gems+=1
-					current_room.gems_collected+=1
-					current_room.gems-=1
-				end
-			end
+	if obj.name=="vase" then
+		local v_spr=obj.v_spr
+		local smash_spr
+		if v_spr==lg_vase_spr[1] then
+			smash_spr=lg_vase_spr[4]
+			sfx(1)
+		else
+			smash_spr=sm_vase_spr[4]
+			sfx(2)
+		end
 
-			if obj.name=="potion" then
-				player:heal(true)
-				mset(obj.x,obj.y,floor_spr[1])
-			end
+		current_room.vases_left-=1
+		obj.is_smashed=true --todo for future use?
+		mset(obj.x,obj.y,smash_spr) --todo lg & sm
+
+		--check vase for bomb
+		if (obj.has_bomb) player.health-=1
+
+		if (player.health==0) mode="game_over"
+
+		--check vase for gem
+		if (obj.has_gem) then
+			player.gems+=1
+			current_room.gems_collected+=1
+			current_room.gems-=1
+		end
+	end
+
+	if obj.name=="potion" then
+		player:heal(true)
+		mset(obj.x,obj.y,floor_spr[1])
+	end
 		del(game_objects, obj)
 end
 --
