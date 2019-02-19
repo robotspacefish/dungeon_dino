@@ -47,6 +47,7 @@ function _update60()
 	if (mode=="setup_room") upd_game_setup()
 	if (mode=="game") upd_game()
 	if (mode=="reset_game") reset_game()
+	if (mode=="game_over") upd_game_over()
 end--_update()
 
 function _draw()
@@ -56,7 +57,7 @@ function _draw()
 	if (mode=="title") draw_title()
 	if (mode=="instructions") draw_instructions()
 	if (mode=="game") draw_game()
-	if (mode=="game_over") game_over()
+	if (mode=="game_over") draw_game_over()
 end--_draw()
 
 -->8
@@ -636,11 +637,14 @@ function place_room_items()
 	end
 end
 
-function game_over()
+function draw_game_over()
 	cls()
 	camera()
 	print("game over",hcenter("game over"),128/2-3,8)
 	print("press c to try again",hcenter("press c to try again"),128/2+6,7)
+end
+
+function upd_game_over()
 	if btnp(4) then mode="reset_game" end
 end
 
