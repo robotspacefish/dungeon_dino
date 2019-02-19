@@ -48,6 +48,7 @@ function _update60()
 	if (mode=="game") upd_game()
 	if (mode=="reset_game") upd_reset_game()
 	if (mode=="game_over") upd_game_over()
+	if (mode=="lvl_complete") upd_lvl_complete()
 end--_update()
 
 function _draw()
@@ -58,6 +59,7 @@ function _draw()
 	if (mode=="instructions") draw_instructions()
 	if (mode=="game") draw_game()
 	if (mode=="game_over") draw_game_over()
+	if (mode=="lvl_complete") draw_lvl_complete()
 end--_draw()
 
 -->8
@@ -87,12 +89,21 @@ function upd_game()
 	for obj in all(game_objects) do
 		obj:update()
 	end
-	-- vases_left=#vases --todo uncomment
+end
+
+function upd_lvl_complete()
+	if (btnp(5)) mode="setup_room"
+end
+
+function draw_lvl_complete()
+	print("level results",hcenter("Level Results"),10,3)
+	print("todo", 55,hcenter("todo"),8)
+	print("press ❎ to start",hcenter("press ❎ to start"),100,11)
 end
 --============== draws ========================================================
 function draw_instructions()
 	print("how to play",hcenter("how to play"),8,7)
-	print("todo", 55,40,8)
+	print("todo", hcenter("todo"),40,8)
 	print("press ❎ to start",hcenter("press ❎ to start"),100,11)
 end
 
@@ -397,7 +408,7 @@ function create_player(x,y)
 			--todo
 			--goal door
 			if has_flag(nt,3) and player.master_key==1 then
-				mode="setup_room"
+				mode="lvl_complete"
 			end
 		end,
 		heal=function(self,pickup)
