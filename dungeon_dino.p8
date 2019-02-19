@@ -116,13 +116,15 @@ function draw_title()
 	local subtitle="gem hunter"
 	local start_txt="press ❎ to start"
 	local instruction_txt="press [z] for instructions"
+	local copy="(c)2019 robotspacefish"
 	local logo_length=98
 	-- spr(32,21,45,13,2)
 	spr(32,64-(logo_length/2),35,13,2)
 	-- print("gem hunter",50,60,7)
 	print(subtitle,hcenter(subtitle),50,7)
 	flash_txt(start_txt,hcenter(start_txt),70,11)
-	print(instruction_txt,hcenter(instruction_txt),80,7)
+	print(instruction_txt,hcenter(instruction_txt),80,3)
+	print(copy,hcenter(copy),110,5)
 end
 
 --==================== center text =============================
