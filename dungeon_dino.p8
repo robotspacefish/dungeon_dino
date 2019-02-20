@@ -21,6 +21,7 @@ local current_room_map
 local player
 local game_objects={}
 local rooms={}
+local bonus_gems=0
 
 -->8
 -- default functions
@@ -91,14 +92,34 @@ function upd_game()
 	end
 end
 
+btn_pressed=0
 function upd_lvl_complete()
-	if (btnp(5)) mode="setup_room"
+	--todo bonus gems for collecting all room gems
+
+	if (btnp(5)) then
+		-- without this counter it was going right from entering the master door into the next level and skipping the lvl complete screen
+		btn_pressed+=1
+		if (btn_pressed==2) then
+			btn_pressed=0
+			mode="setup_room"
+		end
+	end
 end
 
 function draw_lvl_complete()
+	camera()
+	local v_smashed="vases smashed........"..current_room.vases_smashed
+	local v_missed="vases missed.........."..current_room.vases_left
+	local g_collected="gems gollected......."..current_room.gems_collected
+	local g_missed="gems missed..........."..current_room.gems
+	local t_gems="total gems..........."..player.gems
 	print("level results",hcenter("Level Results"),10,3)
-	print("todo", 55,hcenter("todo"),8)
-	print("press ❎ to start",hcenter("press ❎ to start"),100,11)
+	print(v_smashed,hcenter(v_smashed),30,9)
+	print(v_missed,hcenter(v_missed),40,9)
+	print(g_collected,hcenter(g_collected),50,9)
+	print(g_missed,hcenter(g_missed),60,9)
+	print(t_gems,hcenter(t_gems),70,9)
+	print("press ❎ to start",hcenter("press ❎ to continue"),100,11)
 end
 --============== draws ========================================================
 function draw_instructions()
@@ -184,19 +205,20 @@ function handle_item_collision(obj)
 		end
 
 		current_room.vases_left-=1
+		current_room.vases_smashed+=1
 		obj.is_smashed=true --todo for future use?
 		mset(obj.x,obj.y,smash_spr) --todo lg & sm
 
 		--check vase for bomb
-		if (obj.has_bomb) player.health-=1
-
+		-- if (obj.has_bomb) player.health-=1
+--todo debugging: put back after
 		if (player.health==0) mode="game_over"
 
 		--check vase for gem
 		if (obj.has_gem) then
 			player.gems+=1
 			current_room.gems_collected+=1
-			current_room.gems-=1
+			-- current_room.gems-=1
 		end
 	end
 
@@ -218,7 +240,7 @@ function ui()
 
 	-- gems remaining
 	spr(gem_spr[1],x+80,5)
-	print("left:"..current_room.gems,x+90,6,7)
+	print("left:"..current_room.gems-current_room.gems_collected,x+90,6,7)
 
 	-- ======= bottom =======
 	-- keys display
@@ -288,32 +310,12 @@ function create_current_room(room)
 		gems_collected=0,
 		min_gems_needed=0,
 		vases_left=0,
-		-- empty_tiles={},
-		-- layout={},
-		vase_locs={},
-		heart_locs={},
-		bomb_locs={}
+		vases_smashed=0,
 	}
 
 	for k,v in pairs(room) do
 		obj[k]=v
 	end
-
-	-- local room_map={}
-	-- local x,y
-	-- for x=room.x,room.x+15 do
-	-- 	for y=room.y,room.y+15 do
-	-- 		local tile={}
-	-- 		tile.x=x
-	-- 		tile.y=y
-	-- 		tile.spr=mget(x,y)
-	-- 		add(room_map,tile)
-	-- 		for f in all(floor_spr) do --incase more floor tiles are added
-	-- 			if tile.spr==f then add(obj.empty_tiles,{x=tile.x,y=tile.y}) end
-	-- 		end
-	-- 	end
-	-- end
-	-- add(obj.layout,room_map)
 	return obj
 end
 
@@ -361,8 +363,8 @@ function create_player(x,y)
 		sprites={{1,2,3,4},{1,2,3,4},{5,5,6,6},{7,7,8,8}}, --l,r,u,d
 		flp=false,
 		direction=0,
-		keys=0,
-		master_key=0, --todo change back to 0
+		keys=5,
+		master_key=1,
 		gems=0,
 		health=3,
 		potion=0,
