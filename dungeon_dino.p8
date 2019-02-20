@@ -445,8 +445,9 @@ function create_player(x,y)
 				if (btnp(i) and i<=3) then
 					nx,ny=self.x+dir_x[i+1],self.y+dir_y[i+1]
 
-					obstacle_counter+=1
-					if (obstacle_counter>=2) sfx(6) --todo fix: going off when not facing obstacle
+					 --todo fix and reimplement: going off when not facing obstacle
+					-- obstacle_counter+=1
+					-- if (obstacle_counter>=2) sfx(6)
 
 					can_walk=has_flag(mget(nx,ny),0)
 
