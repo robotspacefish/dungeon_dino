@@ -111,7 +111,7 @@ function draw_lvl_complete()
 	local v_smashed="vases smashed........"..current_room.vases_smashed
 	local v_missed="vases missed.........."..current_room.vases_left
 	local g_collected="gems gollected......."..current_room.gems_collected
-	local g_missed="gems missed..........."..current_room.gems
+	local g_missed="gems missed..........."..current_room.gems-current_room.gems_collected
 	local t_gems="total gems..........."..player.gems
 	print("level results",hcenter("Level Results"),10,3)
 	print(v_smashed,hcenter(v_smashed),30,9)
