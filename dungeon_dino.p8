@@ -23,6 +23,10 @@ local game_objects={}
 local rooms={}
 local bonus_gems=0
 
+--===== animations ====== --
+player_walk_lr={1,2,3,4}
+player_walk_up={5,5,6,6}
+player_walk_down={7,7,8,8}
 -->8
 -- default functions
 function _init()
@@ -256,17 +260,6 @@ function ui()
 end
 
 -->8
---===== animations ============================================
-anims={
-	player_hit=function()
-		local i
-		for i=0,15 do
-			pal(11,i)
-		end
-	 pal() -- reset colors
-	end
-}
--->8
 --====== misc and helper functions ======================================
 --x,y,sx,sy,n,mh,mb
 function create_dungeon_layout()
@@ -289,7 +282,7 @@ function create_game_object(name,x,y,props)
 			--do nothing
 			end,
 		draw=function(self)
-			--do nothing
+			spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,1,1,self.flip)
 		end
 	}
 	--add additional properties
@@ -357,7 +350,7 @@ function create_player(x,y)
 		s_o_y=0,
 		size=8,
 		walking=false,
-		sprites={{1,2,3,4},{1,2,3,4},{5,5,6,6},{7,7,8,8}}, --l,r,u,d
+		anim=player_walk_lr,
 		flp=false,
 		direction=0,
 		keys=0,
@@ -429,9 +422,6 @@ function create_player(x,y)
 				end
 			end
 		end,
-		draw=function(self)
-			spr(getframe(self.sprites,self.direction),self.x*8+self.o_x,self.y*8+self.o_y,1,1,self.flip)
-		end,--draw
 		update=function(self)
 			local dir_x={-1,1,0,0} --movement amounts in each direction
 			local dir_y={0,0,-1,1} --l,r,u,d
@@ -452,6 +442,12 @@ function create_player(x,y)
 
 					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
 					self.direction=i --player is facing l=0,r=1,u=2,d=3
+
+					--set directional animations
+					if (i==0 or i==1) player.anim=player_walk_lr
+					if (i==2) player.anim=player_walk_up
+					if (i==3) player.anim=player_walk_down
+
 				end
 				if (btnp(i) and i==4)	self:heal(false)
 				if (btnp(i) and i==5) self:action()
@@ -478,10 +474,9 @@ function create_player(x,y)
 	})
 end
 
-function getframe(anim,direction)
+function getframe(anim)
 		-- direction+1 because lua tables start at 1 and the directions start at 0
-			local frameset=anim[direction+1]
-		return frameset[flr(framecounter/11)%#frameset+1]
+		return flr(framecounter/11)%#anim+1
 end
 
 function create_potion(x,y)
