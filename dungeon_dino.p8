@@ -361,8 +361,6 @@ function create_player(x,y)
 		s_o_y=0,
 		size=8,
 		walking=false,
-		anim_time=0,
-		anim_wait=0.16,
 		sprites={{1,2,3,4},{1,2,3,4},{5,5,6,6},{7,7,8,8}}, --l,r,u,d
 		flp=false,
 		direction=0,
