@@ -23,6 +23,7 @@ local game_objects={}
 local rooms={}
 local bonus_gems=0
 
+
 --===== animations ====== --
 player_walk_lr={1,2,3,4}
 player_walk_up={5,5,6,6}
@@ -143,7 +144,6 @@ function draw_game()
 		end
 
 		ui()
-
 		display_debug()
 end
 
@@ -211,14 +211,18 @@ function handle_item_collision(obj)
 
 		--check vase for bomb
 		if obj.has_bomb then
+			--todo explode bomb
+				create_bomb(obj.x,obj.y,obj.y)
 			 player.health-=1
 				player.hit=true
 			end
 
-		if (player.health==0) mode="game_over"
+		-- if (player.health==0) mode="game_over" --todo put back
 
 		--check vase for gem
 		if (obj.has_gem) then
+			--todo gem animation
+
 			player.gems+=1
 			current_room.gems_collected+=1
 			-- current_room.gems-=1
@@ -517,6 +521,26 @@ function create_potion(x,y)
 		end
 	})
 end
+
+function create_bomb(x,y)
+	return create_game_object("bomb",x,y,{
+		tmr=0,
+		update=function(self)
+			self.tmr+=1
+			-- shoot bomb sprite up from vase location
+			if (self.y>=player.y-10 and self.tmr<4) self.y-=1
+			-- delete bomb
+			if (self.tmr>=8) del(game_objects,self)
+		end,
+		draw=function(self)
+			--explode bomb
+			local s=bomb_spr[1]
+			if (self.tmr>=4) s=bomb_spr[2]
+			spr(s,self.x*8,self.y*8)
+		end
+	})
+
+end
 --====== setup room ==============
 function setup_room()
 	setup_vases(current_room)
@@ -545,10 +569,12 @@ function setup_vases(c_room)
 	end
 
 	local v
-	local b=c_room.max_bombs
+	-- local b=c_room.max_bombs
+	local b=10
 	for v in all(vases) do
 		local r=flr(rnd(4))
-		if r==0 then --place bomb
+		-- if r==0 then --place bomb
+		if r>0 then --place bomb
 			if b>0 then
 				v.has_bomb=true --place gem if max bombs placed
 				b-=1
@@ -711,9 +737,8 @@ function ui_health_display(x)
 end
 
 function display_debug()
-	-- print(player.x..","..player.y,0,0,8)
+	print(#game_objects,0,0,8)
 	-- print(player.x..","..player.y,16*8,0,8)
-	if player.hit then print("true",0,0,7) else print("false",0,0,7)  end
 
 end
 __gfx__
