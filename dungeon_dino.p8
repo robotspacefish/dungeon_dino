@@ -144,8 +144,8 @@ function draw_game()
 			obj:draw()
 		end
 
-		ui()
-		display_debug()
+		-- ui()
+		print_debug()
 end
 
 function draw_title()
@@ -352,11 +352,10 @@ end
 function create_player(x,y)
 	return create_game_object("player",x,y,{
 		--====== player variables =======================================
-		o_x=0,
-		o_y=0,
-		s_o_x=0,
-		s_o_y=0,
-		size=8,
+		-- o_x=0,
+		-- o_y=0,
+		-- s_o_x=0,
+		-- s_o_y=0,
 		walking=false,
 		anim=player_walk_lr,
 		flp=false,
@@ -367,6 +366,7 @@ function create_player(x,y)
 		health=3,
 		potion=0,
 		hit=false,
+		flash=0,
 		--====== player methods ==========================================
 		set_start=function(self,sx,sy)
 			self.x=sx
