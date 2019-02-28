@@ -22,6 +22,7 @@ local player
 local game_objects={}
 local rooms={}
 local bonus_gems=0
+local max_flash_frames=10
 
 
 --===== animations ====== --
@@ -289,7 +290,7 @@ function create_game_object(name,x,y,props)
 			--do nothing
 			end,
 		draw=function(self)
-			-- spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,1,1,self.flip)
+			--do nothing
 		end
 	}
 	--add additional properties
@@ -391,25 +392,7 @@ function create_player(x,y)
 		--bomb
 		if self.hit then
 			sfx(12)
-		-- palette fade
-		-- borrowed from jelpi
-			dpal={0,1,1, 2,1,13,6,
-									4,4,9,3, 13,1,13,14}
-
-			for i=0,10 do
-				for j=1,15 do
-					col = j
-					for k=1,((i+(j%5))/11) do
-						col=dpal[col]
-					end
-					pal(11,col,1)
-				end
-				flip()
-			end
-
-			self.hit=false
-			pal()
-			palt(0,false)
+			self.flash=max_flash_frames
 		end
 
 			--chest
@@ -455,7 +438,17 @@ function create_player(x,y)
 			end
 		end,
 		draw=function(self)
-			spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,1,1,self.flip)
+			local color=11
+			if self.flash>0 then
+				self.flash-=1
+				if (self.flash>max_flash_frames/2) then
+					color=8
+				else
+					color=9
+				end
+				self.hit=false
+			end
+			draw_spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,color,self.flip)
 		end,
 		update=function(self)
 			local dir_x={-1,1,0,0} --movement amounts in each direction
@@ -735,11 +728,24 @@ function ui_health_display(x)
 		add_to_x+=10
 	end
 end
+-->8
 
-function display_debug()
-	print(#game_objects,0,0,8)
-	-- print(player.x..","..player.y,16*8,0,8)
+--tools
+function draw_spr(_spr,_x,_y,_c,_flp)
+ --accepts pixel coordinates
+ palt(0,false)
+ pal(11,_c)
+ spr(_spr,_x,_y,1,1,_flp)
+ pal()
+end
 
+debug={}
+function print_debug()
+	cursor(4,4)
+	for txt in all(debug) do
+		print(txt)
+		color(7)
+	end
 end
 __gfx__
 00000000000303300003033000000000000000000000000000033000000000000003300000000000000000000000000000000000000000000000000000000000
