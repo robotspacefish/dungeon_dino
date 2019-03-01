@@ -324,7 +324,6 @@ function create_player(x,y)
 			-- flp ==================================================
 		flp=function(self,dir)
 			if dir_x[dir+1]<0 then self.flip=true else self.flip=false end
-			self.direction=dir --player is facing l=0,r=1,u=2,d=3
 		end,
 		heal=function(self,pickup)
 			if pickup then
@@ -355,8 +354,8 @@ function create_player(x,y)
 		move=function(self,nx,ny,b)
 			local can_walk=false
 			local last_tile=mget(self.x,self.y)
-
-			self:flp(b)
+			self.direction=b
+			self:flp()
 			set_anim(self,player_anims)
 
 			can_walk=has_flag(mget(nx,ny),0)
