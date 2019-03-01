@@ -278,8 +278,7 @@ function handle_item_collision(obj)
 
 		--check vase for gem
 		if (obj.has_gem) then
-			--todo gem animation
-
+			create_gem(obj.x,obj.y)
 			player.gems+=1
 			current_room.gems_collected+=1
 			-- current_room.gems-=1
@@ -521,12 +520,32 @@ function create_potion(x,y)
 	})
 end
 
+-- gem ======================================
+function create_gem(x,y)
+	return create_game_object("gem",x,y,{
+		tmr=0,
+		update=function(self)
+			--raise gem sprite up from vase
+			self.y-=1/10
+			self.tmr+=1
+			-- delete gem
+			if (self.tmr>30) del(game_objects,self) --30 frames
+		end,
+		draw=function(self)
+			-- palt(0,false)
+			--todo animate
+			spr(gem_spr[1],self.x*8,self.y*8)
+			spr(gem_spr[getframe(gem_spr)],self.x*8,self.y*8)
+		end
+	})
+end
+
 -- bomb ======================================
 function create_bomb(x,y)
 	return create_game_object("bomb",x,y,{
 		tmr=0,
 		update=function(self)
-			-- shoot bomb sprite up from vase location
+			-- raise bomb sprite up from vase location
 			self.y-=1/10
 			self.tmr+=1
 			-- delete bomb
