@@ -211,7 +211,6 @@ function draw_game()
 		end
 
 		ui()
-		print_debug() --todo remove
 end
 
 function draw_lvl_complete()
@@ -301,7 +300,6 @@ function create_player(x,y)
 	return create_game_object("player",x,y,{
 		-- variables ==============================================================
 		walking=false,
-		-- anim=player_walk_lr,
 		anim=player_anims[1],
 		flp=false,
 		direction=0,
@@ -321,10 +319,15 @@ function create_player(x,y)
 			self.master_key=0
 			self.keys=0
 		end,
-			-- flp ==================================================
-		flp=function(self,dir)
-			if dir_x[dir+1]<0 then self.flip=true else self.flip=false end
+-- do_flp ==================================================
+		do_flp=function(self)
+			if dir_x[self.direction+1]<0 then
+				self.flp=true
+			else
+				self.flp=false
+			end
 		end,
+-- f ==================================================
 		heal=function(self,pickup)
 			if pickup then
 				if self.health<3 then
@@ -355,7 +358,7 @@ function create_player(x,y)
 			local can_walk=false
 			local last_tile=mget(self.x,self.y)
 			self.direction=b
-			self:flp()
+			self:do_flp()
 			set_anim(self,player_anims)
 
 			can_walk=has_flag(mget(nx,ny),0)
@@ -428,7 +431,7 @@ function create_player(x,y)
 				end
 				self.hit=false
 			end
-			draw_spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,color,self.flip)
+			draw_spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,color,self.flp)
 		end
 	})
 end
@@ -759,11 +762,11 @@ function vcenter(s)
 end
 -- ====== https://pico-8.fandom.com/wiki/Centering_Text ========
 
-function draw_spr(spr,x,y,c,flp)
+function draw_spr(s,x,y,c,flp)
  --accepts pixel coordinates
  palt(0,false)
  pal(11,c)
- spr(spr,x,y,1,1,flp)
+ spr(s,x,y,1,1,flp)
  pal()
 end
 
