@@ -80,7 +80,7 @@ end
 function upd_game_setup()
 	clear_table(current_room)
 	current_room=create_current_room(rooms[current_room.number+1])
-	setup_room()
+	setup_room(current_room)
 	player:set_start(current_room.start_x,current_room.start_y)
 	player:reset_keys()
 	_upd=upd_game
@@ -523,9 +523,9 @@ function create_bomb(x,y)
 
 end
 --====== setup room ==============
-function setup_room()
-	setup_vases(current_room)
-	setup_room_items(current_room)
+function setup_room(c_room)
+	setup_vases(c_room)
+	setup_room_items(c_room)
 end
 
 function setup_vases(c_room)
@@ -576,14 +576,14 @@ end
 --todo refactor: combine with setup_vases
 function setup_room_items(c_room)
 	-- place potion(s)
-		local heals=flr(rnd(current_room.max_heal))
-		local h
-		for h=0,heals do
-			local i=flr(rnd(#c_room.empty_tiles))
-			create_potion(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y)
-			del(c_room.empty_tiles,i)
-			mset(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y,0) --set transparent sprite on tile
-		end
+	local heals=flr(rnd(c_room.max_heal))
+	local h
+	for h=0,heals do
+		local i=flr(rnd(#c_room.empty_tiles)+1)
+		create_potion(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y)
+		del(c_room.empty_tiles,i)
+		mset(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y,0) --set transparent sprite on tile
+	end
 end
 
 --===== vase functions ====================================
