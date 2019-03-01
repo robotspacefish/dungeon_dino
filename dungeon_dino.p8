@@ -24,6 +24,8 @@ local rooms={}
 local bonus_gems=0
 local max_flash_frames=10
 local floats={}
+local dir_x={-1,1,0,0} --movement amounts in each direction
+local dir_y={0,0,-1,1} --l,r,u,d
 
 
 --===== animations ====== --
@@ -272,6 +274,10 @@ function create_game_object(name,x,y,props)
 		name=name,
 		x=x,
 		y=y,
+		ox=0, --offset
+		oy=0,
+		sox=0, --starting offset
+		soy=0,
 		update=function(self)
 			--do nothing
 			end,
@@ -338,10 +344,6 @@ end
 function create_player(x,y)
 	return create_game_object("player",x,y,{
 		--====== player variables =======================================
-		-- o_x=0,
-		-- o_y=0,
-		-- s_o_x=0,
-		-- s_o_y=0,
 		walking=false,
 		anim=player_walk_lr,
 		flp=false,
@@ -438,8 +440,6 @@ function create_player(x,y)
 			draw_spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,color,self.flip)
 		end,
 		update=function(self)
-			local dir_x={-1,1,0,0} --movement amounts in each direction
-			local dir_y={0,0,-1,1} --l,r,u,d
 			local nx,ny
 			local can_walk=false
 			local i
