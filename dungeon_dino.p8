@@ -364,6 +364,10 @@ function create_player(x,y)
 			self.master_key=0
 			self.keys=0
 		end,
+		flp=function(self,dir)
+			if dir_x[dir+1]<0 then self.flip=true else self.flip=false end
+			self.direction=dir --player is facing l=0,r=1,u=2,d=3
+		end,
 		action=function(self)
 			--check for collision with item
 			local dx,dy=0,0
@@ -426,6 +430,8 @@ function create_player(x,y)
 				end
 			end
 		end,
+		move=function(self)
+		end,
 		draw=function(self)
 			local color=11
 			if self.flash>0 then
@@ -440,6 +446,8 @@ function create_player(x,y)
 			draw_spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,color,self.flip)
 		end,
 		update=function(self)
+			do_btn(get_btn())
+
 			local nx,ny
 			local can_walk=false
 			local i
@@ -455,8 +463,7 @@ function create_player(x,y)
 
 					can_walk=has_flag(mget(nx,ny),0)
 
-					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
-					self.direction=i --player is facing l=0,r=1,u=2,d=3
+					self:flp(i)
 
 					--set directional animations
 					if (i==0 or i==1) player.anim=player_walk_lr
@@ -665,6 +672,18 @@ end
 -- 	end
 -- 	return nt
 -- end
+
+function get_btn()
+	local i
+	for i=0,5 do
+		if (btnp(i)) return i
+	end
+	return -1 --no button was pressed
+end
+
+function do_btn(b)
+	if (b>0 and b<4) player:move()
+end
 
 function clear_table(t)
 	for item in all(t) do
