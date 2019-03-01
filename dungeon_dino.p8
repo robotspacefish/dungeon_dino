@@ -619,12 +619,10 @@ function setup_vases(c_room)
 	end
 
 	local v
-	-- local b=c_room.max_bombs
-	local b=10
+	local b=c_room.max_bombs
 	for v in all(vases) do
 		local r=flr(rnd(4))
-		-- if r==0 then --place bomb
-		if r>0 then --place bomb
+		if r==0 then --place bomb
 			if b>0 then
 				v.has_bomb=true --place gem if max bombs placed
 				b-=1
