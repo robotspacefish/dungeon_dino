@@ -1,6 +1,71 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
+
+-- # tab 0
+-- 	 ##	global variables
+--				  ## sprites
+--						## anims
+-- 	 ##	_init()
+-- 	 ##	start_game()
+-- 	 ## _update60()
+-- 	 ##	_draw()
+-- # tab 1 updates and draws
+--   ## upd_title()
+--   ## upd_instructions()
+--   ## upd_game_setup()
+--   ## upd_game_()
+--   ## upd_lvl_complete()
+--   ## upd_game_over()
+--   ## upd_reset_game()
+--   ## draw_title()
+--   ## draw_instructions()
+--   ## draw_game()
+--   ## draw_lvl_complete)()
+--   ## draw_game_over()
+-- # tab 2 collisions
+--   ## has_flag(next_tile,flag)
+--   ## is_item_collision(next_x,next_y)
+--   ## handle_item_collision(obj)
+-- # tab 3 player
+--   ## :set_start
+--   ## :reset_keys
+--   ## :flp
+--   ## :heal
+--   ## :walk
+--   ## :bump
+--   ## :move
+--   ## :action
+--   ## :update
+--   ## :draw
+-- # tab 4 create objects
+--   ## create_dungeon_layout()
+--   ## create_room(x,y,sx,sy,n,mh,mb,ch,lds)
+--   ## create_current_room(room)
+--   ## create_vase(x,y,v_spr)
+--   ## create_potion(x,y)
+--   ## create_bomb(x,y)
+--   ## create_game_object(name,x,y,props)
+-- # tab 5 misc (setups)
+--   ## setup_room(c_room)
+--   ## setup_vases(c_room)
+--   ## setup_room_items(c_room)
+-- # tab 6 ui
+--   ## ui()
+--   ## ui_health_display(x)
+-- # tab 7 helpers and tools
+--   ## get_btn()
+--   ## do_btn(b)
+--   ## copy_table(ot)
+--   ## clear_table(t)
+--   ## for_each_game_object(name,callback)
+--   ## flash_txt(txt,x,y,col)
+--   ## hcenter(s)
+--   ## vcenter(s)
+--   ## draw_spr(spr,x,y,c,flp)
+--   ## set_anim(obj,anim)
+--   ## getframe(anim)
+--   ## print_debug()
 --============= sprites ===============
 local floor_spr={192}
 local no_vase_flr_tile_spr=208
@@ -27,7 +92,6 @@ local floats={}
 local dir_x={-1,1,0,0} --movement amounts in each direction
 local dir_y={0,0,-1,1} --l,r,u,d
 
-
 --===== animations ====== --
 player_anims={
 	{1,2,3,4}, --walk left
@@ -35,8 +99,7 @@ player_anims={
 	{5,5,6,6}, --walk up
 	{7,7,8,8}  --walk down
 }
--->8
--- default functions
+
 function _init()
 	_upd=upd_title
 	_drw=draw_title
@@ -68,7 +131,7 @@ end--_draw()
 
 -->8
 --updates and draws
---===== updates ===============================================================
+-- tab 1
 function upd_title()
 	if (btnp(4)) then
 		_upd=upd_instructions
@@ -104,22 +167,36 @@ function upd_lvl_complete()
 	if (btnp(5)) _upd=upd_game_setup
 end
 
-function draw_lvl_complete()
-	camera()
-	local v_smashed="vases smashed........"..current_room.vases_smashed
-	local v_missed="vases missed.........."..current_room.vases_left
-	local g_collected="gems gollected......."..current_room.gems_collected
-	local g_missed="gems missed..........."..current_room.gems-current_room.gems_collected
-	local t_gems="total gems..........."..player.gems
-	print("level results",hcenter("Level Results"),10,3)
-	print(v_smashed,hcenter(v_smashed),30,9)
-	print(v_missed,hcenter(v_missed),40,9)
-	print(g_collected,hcenter(g_collected),50,9)
-	print(g_missed,hcenter(g_missed),60,9)
-	print(t_gems,hcenter(t_gems),70,9)
-	print("press ❎ to start",hcenter("press ❎ to continue"),100,11)
+function upd_game_over()
+	-- if btnp(4) then mode="reset_game" end
+	if btnp(4) then _upd=upd_reset_game end
 end
---============== draws ========================================================
+
+function upd_reset_game()
+	clear_table(game_objects)
+	--reset original map sprites
+	for room in all(rooms) do
+		for t in all(room.layout) do
+			mset(t.x,t.y,t.spr)
+		end
+	end
+	clear_table(current_room)
+	start_game()
+end
+-- draws ========================================================
+function draw_title()
+	local subtitle="g e m  h u n t e r"
+	local start_txt="press ❎ to start"
+	local instruction_txt="press [z] for instructions"
+	local copy="2019 robotspacefish"
+	local logo_length=98 -- px length of logo made with sprites
+	spr(32,64-(logo_length/2),35,13,2)
+	print(subtitle,hcenter(subtitle),50,7)
+	flash_txt(start_txt,hcenter(start_txt),70,11)
+	print(instruction_txt,hcenter(instruction_txt),80,3)
+	print(copy,hcenter(copy),110,5)
+end
+
 function draw_instructions()
 	print("how to play",hcenter("how to play"),8,7)
 	print("todo", hcenter("todo"),40,8)
@@ -137,38 +214,30 @@ function draw_game()
 		print_debug() --todo remove
 end
 
-function draw_title()
-	local subtitle="g e m  h u n t e r"
-	local start_txt="press ❎ to start"
-	local instruction_txt="press [z] for instructions"
-	local copy="2019 robotspacefish"
-	local logo_length=98 -- px length of logo made with sprites
-	spr(32,64-(logo_length/2),35,13,2)
-	print(subtitle,hcenter(subtitle),50,7)
-	flash_txt(start_txt,hcenter(start_txt),70,11)
-	print(instruction_txt,hcenter(instruction_txt),80,3)
-	print(copy,hcenter(copy),110,5)
+function draw_lvl_complete()
+	camera()
+	local v_smashed="vases smashed........"..current_room.vases_smashed
+	local v_missed="vases missed.........."..current_room.vases_left
+	local g_collected="gems gollected......."..current_room.gems_collected
+	local g_missed="gems missed..........."..current_room.gems-current_room.gems_collected
+	local t_gems="total gems..........."..player.gems
+	print("level results",hcenter("level results"),10,3)
+	print(v_smashed,hcenter(v_smashed),30,9)
+	print(v_missed,hcenter(v_missed),40,9)
+	print(g_collected,hcenter(g_collected),50,9)
+	print(g_missed,hcenter(g_missed),60,9)
+	print(t_gems,hcenter(t_gems),70,9)
+	print("press ❎ to start",hcenter("press ❎ to continue"),100,11)
 end
 
---==================== center text =============================
-function hcenter(s)
-  -- screen center minus the
-  -- string length times the
-  -- pixels in a char's width,
-  -- cut in half
-  return 64-#s*2
+function draw_game_over()
+	camera()
+	print("game over",hcenter("game over"),128/2-3,8)
+	print("press c to try again",hcenter("press c to try again"),128/2+6,7)
 end
-
-function vcenter(s)
-  -- screen center minus the
-  -- string height in pixels,
-  -- cut in half
-  return 61
-end
-
--- ====== https://pico-8.fandom.com/wiki/Centering_Text ========
 -->8
---===== collision functions ======================================
+-- collisions ======================================
+-- tab 2
 function has_flag(next_tile,flag)
 	if fget(next_tile,flag) then return true end
 	return false
@@ -182,7 +251,6 @@ function is_item_collision(next_x,next_y)
 end
 
 function handle_item_collision(obj)
-
 	if obj.name=="vase" then
 		local v_spr=obj.v_spr
 		local smash_spr
@@ -225,41 +293,153 @@ function handle_item_collision(obj)
 	end
 		del(game_objects, obj)
 end
+
 -->8
---===== ui functions ======================================
-function ui()
-	local x=current_room.x*8+4
-	-- ======= top =======
-	ui_health_display(x)
+--player
+-- tab 3
+function create_player(x,y)
+	return create_game_object("player",x,y,{
+		-- variables ==============================================================
+		walking=false,
+		-- anim=player_walk_lr,
+		anim=player_anims[1],
+		flp=false,
+		direction=0,
+		keys=0,
+		master_key=0,
+		gems=0,
+		health=3,
+		potion=0,
+		hit=false,
+		flash=0,
+-- methods ==================================================================
+		set_start=function(self,sx,sy)
+			self.x=sx
+			self.y=sy
+		end,
+		reset_keys=function(self)
+			self.master_key=0
+			self.keys=0
+		end,
+			-- flp ==================================================
+		flp=function(self,dir)
+			if dir_x[dir+1]<0 then self.flip=true else self.flip=false end
+			self.direction=dir --player is facing l=0,r=1,u=2,d=3
+		end,
+		heal=function(self,pickup)
+			if pickup then
+				if self.health<3 then
+					sfx(8)
+					self.health+=1
+				else
+					sfx(10)
+					self.potion+=1
+				end
+			else
+				if self.health<3 and self.potion>0 then
+					sfx(8)
+					self.potion-=1
+					self.health+=1
+				else
+					sfx(9)
+				end
+			end
+		end,
+-- walk ==================================================
+		walk=function(self,dx,dy)
+		end,
+-- bump ==================================================
+		bump=function(self,dx,dy)
+		end,
+-- move ==================================================
+		move=function(self,nx,ny,b)
+			local can_walk=false
+			local last_tile=mget(self.x,self.y)
 
-	local location="r-"..current_room.number
-	print(location,(current_room.x*8+64)-(#location/2)-8,6,7)
+			self:flp(b)
+			set_anim(self,player_anims)
 
-	-- gems remaining
-	spr(gem_spr[1],x+80,5)
-	print("left:"..current_room.gems-current_room.gems_collected,x+90,6,7)
+			can_walk=has_flag(mget(nx,ny),0)
+			if can_walk then
+				local next_tile=mget(nx,ny)
+					--crumble entrance door
+				if last_tile==220 and (next_tile==no_vase_flr_tile_spr or next_tile==sm_vase_spr[4]) then --todo better method than this
+					mset(self.x,self.y,219)
+					last_tile=nil
+				end
+				sfx(11)
+				obstacle_counter=0
+				self.x=nx
+				self.y=ny
+			end -- if can_walk
 
-	-- ======= bottom =======
-	-- keys display
-	local b_y=14*8+4
-	spr(key_spr,x,b_y-2)
-	print(":"..player.keys,x+7,b_y,7)
-	spr(master_key_spr,x+20,b_y-2)
-	print(":"..player.master_key,x+27,b_y,7)
+			if current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
+		end,
+-- action ==================================================
+	action=function(self)
+		--check for collision with item
+		local nx,ny=self.x+dir_x[self.direction+1],self.y+dir_y[self.direction+1]
+		local nt=mget(nx,ny)
+		item=is_item_collision(nx,ny)
+		if (item ~=nil)	handle_item_collision(item)
 
-	--healing item display
-	spr(heal_spr,x+40,b_y-2)
-	print(":"..player.potion,x+48,b_y,7)
-	--gems display
-	local j_x=x+102
-	spr(gem_spr[1],j_x,b_y-2)
-	print(":"..player.gems,j_x+9,b_y,7)
+	--bomb
+	if self.hit then
+		sfx(12)
+		self.flash=max_flash_frames
+	end
+
+		--chest
+		if has_flag(nt,2) then
+			sfx(5)
+			player.keys+=1
+			--empty chest sprite
+			mset(nx,ny,chest_spr[1])
+		end
+
+	--locked door
+		if has_flag(nt,7) and player.keys>0 then
+			sfx(4)
+			--change tile in location to unlocked door color
+			mset(nx,ny,nt+1)
+			--remove key from inventory
+			player.keys-=1
+		end
+
+		--todo
+		--goal door
+		if has_flag(nt,3) and player.master_key==1 then
+			_upd=upd_lvl_complete
+			_drw=draw_lvl_complete
+		end
+	end,
+-- update ==================================================
+			update=function(self)
+				do_btn(get_btn())
+			end,
+-- draw ==================================================
+		draw=function(self)
+			local color=11
+			if self.flash>0 then
+				self.flash-=1
+				if (self.flash>max_flash_frames/2) then
+					color=8
+				else
+					color=9
+				end
+				self.hit=false
+			end
+			draw_spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,color,self.flip)
+		end
+	})
 end
 
 -->8
---====== misc and helper functions ======================================
---x,y,sx,sy,n,mh,mb
+-- create objects ==========================================
+-- tab 4
+-- dungeon ======================================
 function create_dungeon_layout()
+	--x,y,sx,sy,n,mh,mb
 	--todo create more rooms efficiently
 	create_room(0,0,1,3,1,1,3)
 	create_room(16,0,17,9,2,3,4)
@@ -267,51 +447,9 @@ function create_dungeon_layout()
 	create_room(48,0,33,12,4,3,5)
 	create_room(64,0,33,12,5,4,5)
 	create_room(80,0,33,12,6,3,5)
-
-end
---========== create objects ==========================================
-function create_game_object(name,x,y,props)
-	local obj={
-		name=name,
-		x=x,
-		y=y,
-		ox=0, --offset
-		oy=0,
-		sox=0, --starting offset
-		soy=0,
-		update=function(self)
-			--do nothing
-			end,
-		draw=function(self)
-			--do nothing
-		end
-	}
-	--add additional properties
-	local k,v
-	for k,v in pairs(props) do
-		obj[k]=v
-	end
-	--add to list of game objects
-	add(game_objects,obj)
-
-	return obj
 end
 
-function create_current_room(room)
-	local obj={
-		gems=0,
-		gems_collected=0,
-		min_gems_needed=0,
-		vases_left=0,
-		vases_smashed=0,
-	}
-
-	for k,v in pairs(room) do
-		obj[k]=v
-	end
-	return obj
-end
-
+-- room ======================================
 function create_room(x,y,sx,sy,n,mh,mb,ch,lds)
 	local obj={
 		x=x,
@@ -342,141 +480,37 @@ function create_room(x,y,sx,sy,n,mh,mb,ch,lds)
 	return obj
 end
 
-function create_player(x,y)
-	return create_game_object("player",x,y,{
-		--====== player variables =======================================
-		walking=false,
-		-- anim=player_walk_lr,
-		anim=player_anims[1],
-		flp=false,
-		direction=0,
-		keys=0,
-		master_key=0,
+-- current room ======================================
+function create_current_room(room)
+	local obj={
 		gems=0,
-		health=3,
-		potion=0,
-		hit=false,
-		flash=0,
-		--====== player methods ==========================================
-		set_start=function(self,sx,sy)
-			self.x=sx
-			self.y=sy
-		end,
-		reset_keys=function(self)
-			self.master_key=0
-			self.keys=0
-		end,
-		flp=function(self,dir)
-			if dir_x[dir+1]<0 then self.flip=true else self.flip=false end
-			self.direction=dir --player is facing l=0,r=1,u=2,d=3
-		end,
-		action=function(self)
-			--check for collision with item
-			local nx,ny=self.x+dir_x[self.direction+1],self.y+dir_y[self.direction+1]
-			local nt=mget(nx,ny)
-			item=is_item_collision(nx,ny)
-			if (item ~=nil)	handle_item_collision(item)
+		gems_collected=0,
+		min_gems_needed=0,
+		vases_left=0,
+		vases_smashed=0,
+	}
 
-		--bomb
-		if self.hit then
-			sfx(12)
-			self.flash=max_flash_frames
-		end
+	for k,v in pairs(room) do
+		obj[k]=v
+	end
+	return obj
+end
 
-			--chest
-			if has_flag(nt,2) then
-				sfx(5)
-				player.keys+=1
-				--empty chest sprite
-				mset(nx,ny,chest_spr[1])
-			end
-
-		--locked door
-			if has_flag(nt,7) and player.keys>0 then
-				sfx(4)
-				--change tile in location to unlocked door color
-				mset(nx,ny,nt+1)
-				--remove key from inventory
-				player.keys-=1
-			end
-
-			--todo
-			--goal door
-			if has_flag(nt,3) and player.master_key==1 then
-				_upd=upd_lvl_complete
-				_drw=draw_lvl_complete
-			end
-		end,
-		heal=function(self,pickup)
-			if pickup then
-				if self.health<3 then
-					sfx(8)
-					self.health+=1
-				else
-					sfx(10)
-					self.potion+=1
-				end
-			else
-				if self.health<3 and self.potion>0 then
-					sfx(8)
-					self.potion-=1
-					self.health+=1
-				else
-					sfx(9)
-				end
-			end
-		end,
-		move=function(self,nx,ny,b)
-			local can_walk=false
-			local last_tile=mget(self.x,self.y)
-			can_walk=has_flag(mget(nx,ny),0)
-			self:flp(b)
-
-			set_anim(self,player_anims)
-			-- --set animations
-			-- if (b==0 or b==1) player.anim=player_walk_lr
-			-- if (b==2) player.anim=player_walk_up
-			-- if (b==3) player.anim=player_walk_down
-			if can_walk then
-				--crumble entrance door
-				--todo crumble doors facing different directions
-				local next_tile=mget(nx,ny)
-				if last_tile==220 and (next_tile==no_vase_flr_tile_spr or next_tile==sm_vase_spr[4]) then --todo better method than this
-					mset(self.x,self.y,219)
-					last_tile=nil
-				end
-				sfx(11)
-				obstacle_counter=0
-				self.x=nx
-				self.y=ny
-			end -- if can_walk
-
-			if current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
-		end,
+-- vase ======================================
+function create_vase(x,y,v_spr) --todo randomly generate x,y
+	return create_game_object("vase",x,y,{
+		v_spr=v_spr,
+		has_bomb=false,
+		has_gem=false,
+		is_smashed=false,
 		draw=function(self)
-			local color=11
-			if self.flash>0 then
-				self.flash-=1
-				if (self.flash>max_flash_frames/2) then
-					color=8
-				else
-					color=9
-				end
-				self.hit=false
-			end
-			draw_spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,color,self.flip)
-		end,
-		update=function(self)
-			do_btn(get_btn())
-		end--update
+			--todo random vase size
+			spr(v_spr,self.x*8,self.y*8)
+		end
 	})
 end
 
-function getframe(anim)
-		-- direction+1 because lua tables start at 1 and the directions start at 0
-		return flr(framecounter/11)%#anim+1
-end
-
+-- potion ======================================
 function create_potion(x,y)
 	return create_game_object("potion",x,y,{
 		draw=function(self)
@@ -485,6 +519,7 @@ function create_potion(x,y)
 	})
 end
 
+-- bomb ======================================
 function create_bomb(x,y)
 	return create_game_object("bomb",x,y,{
 		tmr=0,
@@ -503,8 +538,38 @@ function create_bomb(x,y)
 			spr(s,self.x*8,self.y*8)
 		end
 	})
-
 end
+
+function create_game_object(name,x,y,props)
+	local obj={
+		name=name,
+		x=x,
+		y=y,
+		ox=0, --offset
+		oy=0,
+		sox=0, --starting offset
+		soy=0,
+		update=function(self)
+			--do nothing
+			end,
+		draw=function(self)
+			--do nothing
+		end
+	}
+	--add additional properties
+	local k,v
+	for k,v in pairs(props) do
+		obj[k]=v
+	end
+	--add to list of game objects
+	add(game_objects,obj)
+
+	return obj
+end
+
+-->8
+-- misc ==================================================================
+-- tab 5
 --====== setup room ==============
 function setup_room(c_room)
 	setup_vases(c_room)
@@ -569,119 +634,36 @@ function setup_room_items(c_room)
 	end
 end
 
---===== vase functions ====================================
-function create_vase(x,y,v_spr) --todo randomly generate x,y
-	return create_game_object("vase",x,y,{
-		v_spr=v_spr,
-		has_bomb=false,
-		has_gem=false,
-		is_smashed=false,
-		draw=function(self)
-			--todo random vase size
-			spr(v_spr,self.x*8,self.y*8)
-		end
-	})
-end
+-->8
+--===== ui functions ======================================
+-- tab 6
+function ui()
+	local x=current_room.x*8+4
+	-- ======= top =======
+	ui_health_display(x)
 
-function place_room_items()
-	local b=current_room.max_bombs --# of bombs hidden in each room
-	local h=current_room.max_heal --# of health hidden
-	local v
-	for v in all(vases) do
-		local random=flr(rnd(4))
-		if random==0 then --place bomb
-			if b>0 then
-				v.bomb=true
-				b-=1
-				-- mset(v.x,v.y,bomb_spr[1])
-			else
-				--place gem instead
-				v.gem=true
-				current_room.gems+=1
-				-- mset(v.x,v.y,gem_spr[1])
-			end
-		elseif random==1 then --place health
-			if h>0 then
-				v.health=true
-				h-=1
-				mset(v.x,v.y,heal_spr)
-			else
-				v.gem=true
-				current_room.gems+=1
-			end
-		elseif random==2 then
-			v.gem=true
-			current_room.gems+=1
-			-- mset(v.x,v.y,gem_spr[1])
-		end
-	end
-end
+	local location="r-"..current_room.number
+	print(location,(current_room.x*8+64)-(#location/2)-8,6,7)
 
-function draw_game_over()
-	camera()
-	print("game over",hcenter("game over"),128/2-3,8)
-	print("press c to try again",hcenter("press c to try again"),128/2+6,7)
-end
+	-- gems remaining
+	spr(gem_spr[1],x+80,5)
+	print("left:"..current_room.gems-current_room.gems_collected,x+90,6,7)
 
-function upd_game_over()
-	-- if btnp(4) then mode="reset_game" end
-	if btnp(4) then _upd=upd_reset_game end
-end
+	-- ======= bottom =======
+	-- keys display
+	local b_y=14*8+4
+	spr(key_spr,x,b_y-2)
+	print(":"..player.keys,x+7,b_y,7)
+	spr(master_key_spr,x+20,b_y-2)
+	print(":"..player.master_key,x+27,b_y,7)
 
-function upd_reset_game()
-	clear_table(game_objects)
-	--reset original map sprites
-	for room in all(rooms) do
-		for t in all(room.layout) do
-			mset(t.x,t.y,t.spr)
-		end
-	end
-	clear_table(current_room)
-	start_game()
-end
---
--- function copy_table(ot)
--- 	local nt={}
--- 	local k,v
--- 	for k,v in pairs(ot) do
--- 		nt[k]=v
--- 	end
--- 	return nt
--- end
-
-function get_btn()
-	local i
-	for i=0,5 do
-		if (btnp(i)) return i
-	end
-	return -1 --no button was pressed
-end
-
-function do_btn(b)
-	if (b<0) return
-	if (b<4) player:move(player.x+dir_x[b+1],player.y+dir_y[b+1],b)
-	if (b==4)	player:heal(false)
-	if (b==5) player:action() --todo replace with auto action
-end
-
-function clear_table(t)
-	for item in all(t) do
-		del(t,item)
-	end
-end
-
-function flash_txt(txt,x,y,col)
-  if(flashcount<25)print(txt,x,y,col)
-  if(flashcount > 50)flashcount=0
-end
-
-function for_each_game_object(name,callback)
-	local obj
-	for obj in all(game_objects) do
-		if obj.name==name then
-			callback(obj)
-		end
-	end
+	--healing item display
+	spr(heal_spr,x+40,b_y-2)
+	print(":"..player.potion,x+48,b_y,7)
+	--gems display
+	local j_x=x+102
+	spr(gem_spr[1],j_x,b_y-2)
+	print(":"..player.gems,j_x+9,b_y,7)
 end
 
 function ui_health_display(x)
@@ -715,13 +697,74 @@ function ui_health_display(x)
 	end
 end
 -->8
+-- ======= helpers and tools ==================================================
+-- tab 7
+function get_btn()
+	local i
+	for i=0,5 do
+		if (btnp(i)) return i
+	end
+	return -1 --no button was pressed
+end
 
---tools
-function draw_spr(_spr,_x,_y,_c,_flp)
+function do_btn(b)
+	if (b<0) return
+	if (b<4) player:move(player.x+dir_x[b+1],player.y+dir_y[b+1],b)
+	if (b==4)	player:heal(false)
+	if (b==5) player:action() --todo replace with auto action
+end
+
+function copy_table(ot)
+	local nt={}
+	local k,v
+	for k,v in pairs(ot) do
+		nt[k]=v
+	end
+	return nt
+end
+
+function clear_table(t)
+	for item in all(t) do
+		del(t,item)
+	end
+end
+
+function for_each_game_object(name,callback)
+	local obj
+	for obj in all(game_objects) do
+		if obj.name==name then
+			callback(obj)
+		end
+	end
+end
+
+function flash_txt(txt,x,y,col)
+  if(flashcount<25)print(txt,x,y,col)
+  if(flashcount > 50)flashcount=0
+end
+
+-- center text =============================
+function hcenter(s)
+  -- screen center minus the
+  -- string length times the
+  -- pixels in a char's width,
+  -- cut in half
+  return 64-#s*2
+end
+
+function vcenter(s)
+  -- screen center minus the
+  -- string height in pixels,
+  -- cut in half
+  return 61
+end
+-- ====== https://pico-8.fandom.com/wiki/Centering_Text ========
+
+function draw_spr(spr,x,y,c,flp)
  --accepts pixel coordinates
  palt(0,false)
- pal(11,_c)
- spr(_spr,_x,_y,1,1,_flp)
+ pal(11,c)
+ spr(spr,x,y,1,1,flp)
  pal()
 end
 
@@ -729,6 +772,11 @@ function set_anim(obj,anim)
 	if obj.name=="player" then
 		obj.anim=anim[obj.direction+1]
 	end
+end
+
+function getframe(anim)
+		-- direction+1 because lua tables start at 1 and the directions start at 0
+		return flr(framecounter/11)%#anim+1
 end
 
 debug={}
@@ -739,6 +787,7 @@ function print_debug()
 		color(7)
 	end
 end
+
 __gfx__
 00000000000303300003033000000000000000000000000000033000000000000003300000000000000000000000000000000000000000000000000000000000
 00000000003bbdbb003bbdbb0003033000030330000330000bbbbbb0000330000bdbbdb000000000000000000000000000000000000000000000000000000000
