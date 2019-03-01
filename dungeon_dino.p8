@@ -29,9 +29,12 @@ local dir_y={0,0,-1,1} --l,r,u,d
 
 
 --===== animations ====== --
-player_walk_lr={1,2,3,4}
-player_walk_up={5,5,6,6}
-player_walk_down={7,7,8,8}
+player_anims={
+	{1,2,3,4}, --walk left
+	{1,2,3,4}, --walk right
+	{5,5,6,6}, --walk up
+	{7,7,8,8}  --walk down
+}
 -->8
 -- default functions
 function _init()
@@ -61,7 +64,6 @@ function _draw()
 	_drw()
 	flashcount+=1 -- for text flashing
 	palt(0,false)
-	local obj
 end--_draw()
 
 -->8
@@ -97,7 +99,6 @@ function upd_game()
 	end
 end
 
-btn_pressed=0
 function upd_lvl_complete()
 	--todo bonus gems for collecting all room gems
 	if (btnp(5)) _upd=upd_game_setup
@@ -133,7 +134,7 @@ function draw_game()
 		end
 
 		ui()
-		print_debug()
+		print_debug() --todo remove
 end
 
 function draw_title()
@@ -345,7 +346,8 @@ function create_player(x,y)
 	return create_game_object("player",x,y,{
 		--====== player variables =======================================
 		walking=false,
-		anim=player_walk_lr,
+		-- anim=player_walk_lr,
+		anim=player_anims[1],
 		flp=false,
 		direction=0,
 		keys=0,
@@ -364,15 +366,13 @@ function create_player(x,y)
 			self.master_key=0
 			self.keys=0
 		end,
+		flp=function(self,dir)
+			if dir_x[dir+1]<0 then self.flip=true else self.flip=false end
+			self.direction=dir --player is facing l=0,r=1,u=2,d=3
+		end,
 		action=function(self)
 			--check for collision with item
-			local dx,dy=0,0
-			if (self.direction==0) dx=-1
-			if (self.direction==1) dx=1
-			if (self.direction==2) dy=-1
-			if (self.direction==3) dy=1
-
-			local nx,ny=self.x+dx,self.y+dy
+			local nx,ny=self.x+dir_x[self.direction+1],self.y+dir_y[self.direction+1]
 			local nt=mget(nx,ny)
 			item=is_item_collision(nx,ny)
 			if (item ~=nil)	handle_item_collision(item)
@@ -426,6 +426,33 @@ function create_player(x,y)
 				end
 			end
 		end,
+		move=function(self,nx,ny,b)
+			local can_walk=false
+			local last_tile=mget(self.x,self.y)
+			can_walk=has_flag(mget(nx,ny),0)
+			self:flp(b)
+
+			set_anim(self,player_anims)
+			-- --set animations
+			-- if (b==0 or b==1) player.anim=player_walk_lr
+			-- if (b==2) player.anim=player_walk_up
+			-- if (b==3) player.anim=player_walk_down
+			if can_walk then
+				--crumble entrance door
+				--todo crumble doors facing different directions
+				local next_tile=mget(nx,ny)
+				if last_tile==220 and (next_tile==no_vase_flr_tile_spr or next_tile==sm_vase_spr[4]) then --todo better method than this
+					mset(self.x,self.y,219)
+					last_tile=nil
+				end
+				sfx(11)
+				obstacle_counter=0
+				self.x=nx
+				self.y=ny
+			end -- if can_walk
+
+			if current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
+		end,
 		draw=function(self)
 			local color=11
 			if self.flash>0 then
@@ -440,51 +467,7 @@ function create_player(x,y)
 			draw_spr(self.anim[getframe(self.anim)],self.x*8,self.y*8,color,self.flip)
 		end,
 		update=function(self)
-			local nx,ny
-			local can_walk=false
-			local i
-			local last_tile=mget(self.x,self.y)
-
-			for i=0,5 do --btn 0=l,1=r,2=u,3=d,4=c,5=x
-				if (btnp(i) and i<=3) then
-					nx,ny=self.x+dir_x[i+1],self.y+dir_y[i+1]
-
-					 --todo fix and reimplement: going off when not facing obstacle
-					-- obstacle_counter+=1
-					-- if (obstacle_counter>=2) sfx(6)
-
-					can_walk=has_flag(mget(nx,ny),0)
-
-					if dir_x[i+1]<0 then self.flip=true else self.flip=false end
-					self.direction=i --player is facing l=0,r=1,u=2,d=3
-
-					--set directional animations
-					if (i==0 or i==1) player.anim=player_walk_lr
-					if (i==2) player.anim=player_walk_up
-					if (i==3) player.anim=player_walk_down
-
-				end
-				if (btnp(i) and i==4)	self:heal(false)
-				if (btnp(i) and i==5) self:action()
-
-				if can_walk then
-					--crumble entrance door
-					--todo crumble doors facing different directions
-					local next_tile=mget(nx,ny)
-					if last_tile==220 and (next_tile==no_vase_flr_tile_spr or next_tile==sm_vase_spr[4]) then --todo better method than this
-						mset(self.x,self.y,219)
-						last_tile=nil
-					end
-					sfx(11)
-					obstacle_counter=0
-					self.x=nx
-					self.y=ny
-				end
-			end --for loop
-
-			if current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
-
-			--todo bonus gems
+			do_btn(get_btn())
 		end--update
 	})
 end
@@ -666,6 +649,21 @@ end
 -- 	return nt
 -- end
 
+function get_btn()
+	local i
+	for i=0,5 do
+		if (btnp(i)) return i
+	end
+	return -1 --no button was pressed
+end
+
+function do_btn(b)
+	if (b<0) return
+	if (b<4) player:move(player.x+dir_x[b+1],player.y+dir_y[b+1],b)
+	if (b==4)	player:heal(false)
+	if (b==5) player:action() --todo replace with auto action
+end
+
 function clear_table(t)
 	for item in all(t) do
 		del(t,item)
@@ -725,6 +723,12 @@ function draw_spr(_spr,_x,_y,_c,_flp)
  pal(11,_c)
  spr(_spr,_x,_y,1,1,_flp)
  pal()
+end
+
+function set_anim(obj,anim)
+	if obj.name=="player" then
+		obj.anim=anim[obj.direction+1]
+	end
 end
 
 debug={}
