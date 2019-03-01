@@ -16,9 +16,9 @@ local chest_spr={112,113}
 local flashcount=0
 local framecounter=0 -- keep track of frames as update runs
 local obstacle_counter=0 -- used for obstacle bumping
-local current_room
-local current_room_map
-local player
+local current_room={}
+local current_room_map={}
+local player={}
 local game_objects={}
 local rooms={}
 local bonus_gems=0
@@ -33,49 +33,43 @@ player_walk_down={7,7,8,8}
 -->8
 -- default functions
 function _init()
-	mode="title"
+	_upd=upd_title
+	_drw=draw_title
 end
 
 function start_game()
 	--create all the room maps with locked door & chest tile locations
 	create_dungeon_layout()
 	--set first room
-	-- current_room=create_current_room(rooms[1])
 	current_room=create_current_room(rooms[1])
 	--initialize player with starting tile position
 	setup_room(current_room)
 	player=create_player(current_room.start_x,current_room.start_y)
 
-	mode="game"
+	_upd=upd_game
+	_drw=draw_game
 end
 
 function _update60()
-	if (mode=="title") upd_title()
-	if (mode=="instructions") upd_instructions()
-	if (mode=="setup_room") upd_game_setup()
-	if (mode=="game") upd_game()
-	if (mode=="reset_game") upd_reset_game()
-	if (mode=="game_over") upd_game_over()
-	if (mode=="lvl_complete") upd_lvl_complete()
+	_upd()
 end--_update()
 
 function _draw()
-	flashcount+=1 -- for text flashing
 	cls()
+	_drw()
+	flashcount+=1 -- for text flashing
 	palt(0,false)
 	local obj
-	if (mode=="title") draw_title()
-	if (mode=="instructions") draw_instructions()
-	if (mode=="game") draw_game()
-	if (mode=="game_over") draw_game_over()
-	if (mode=="lvl_complete") draw_lvl_complete()
 end--_draw()
 
 -->8
 --updates and draws
 --===== updates ===============================================================
 function upd_title()
-	if (btnp(4)) mode="instructions"
+	if (btnp(4)) then
+		_upd=upd_instructions
+		_drw=draw_instructions
+	end
 	if (btnp(5)) start_game()
 end
 
@@ -89,7 +83,8 @@ function upd_game_setup()
 	setup_room()
 	player:set_start(current_room.start_x,current_room.start_y)
 	player:reset_keys()
-	mode="game"
+	_upd=upd_game
+	_drw=draw_game
 end
 
 function upd_game()
@@ -103,15 +98,7 @@ end
 btn_pressed=0
 function upd_lvl_complete()
 	--todo bonus gems for collecting all room gems
-
-	if (btnp(5)) then
-		-- without this counter it was going right from entering the master door into the next level and skipping the lvl complete screen
-		btn_pressed+=1
-		if (btn_pressed==2) then
-			btn_pressed=0
-			mode="setup_room"
-		end
-	end
+	if (btnp(5)) _upd=upd_game_setup
 end
 
 function draw_lvl_complete()
@@ -137,8 +124,6 @@ function draw_instructions()
 end
 
 function draw_game()
-	cls()
-		-- map(current_room.x,current_room.y,0,16)
 		map()
 		camera(current_room.x*8,current_room.y*8)
 		for obj in all(game_objects) do
@@ -213,7 +198,7 @@ function handle_item_collision(obj)
 
 		--check vase for bomb
 		if obj.has_bomb then
-			--todo explode bomb
+			--explode bomb
 				create_bomb(obj.x,obj.y)
 			 player.health-=1
 				player.hit=true
@@ -416,7 +401,8 @@ function create_player(x,y)
 			--todo
 			--goal door
 			if has_flag(nt,3) and player.master_key==1 then
-				mode="lvl_complete"
+				_upd=upd_lvl_complete
+				_drw=draw_lvl_complete
 			end
 		end,
 		heal=function(self,pickup)
@@ -649,14 +635,14 @@ function place_room_items()
 end
 
 function draw_game_over()
-	cls()
 	camera()
 	print("game over",hcenter("game over"),128/2-3,8)
 	print("press c to try again",hcenter("press c to try again"),128/2+6,7)
 end
 
 function upd_game_over()
-	if btnp(4) then mode="reset_game" end
+	-- if btnp(4) then mode="reset_game" end
+	if btnp(4) then _upd=upd_reset_game end
 end
 
 function upd_reset_game()
