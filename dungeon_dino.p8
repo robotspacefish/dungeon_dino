@@ -449,11 +449,11 @@ function create_dungeon_layout()
 	--x,y,sx,sy,n,mh,mb
 	--todo create more rooms efficiently
 	create_room(0,0,1,3,1,1,3)
-	create_room(16,0,17,9,2,3,4)
-	create_room(32,0,33,12,3,4,5)
-	create_room(48,0,33,12,4,3,5)
-	create_room(64,0,33,12,5,4,5)
-	create_room(80,0,33,12,6,3,5)
+	create_room(16,0,17,10 ,2,3,4)
+	create_room(32,0,45,3,3,4,5)
+	create_room(48,0,59,12,4,3,5)
+	-- create_room(64,0,33,12,5,4,5)
+	-- create_room(80,0,33,12,6,3,5)
 end
 
 -- room ======================================
