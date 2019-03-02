@@ -44,7 +44,7 @@ __lua__
 --   ## create_current_room(room)
 --   			### setup()
 --   			### setup_vases()
---   			### setup_room_items()
+--   			### setup_items()
 --   ## create_vase(x,y,v_spr)
 --   ## create_potion(x,y)
 --   ## create_bomb(x,y)
@@ -67,6 +67,8 @@ __lua__
 --   ## getframe(anim)
 --   ## print_debug()
 --============= sprites ===============
+local locked_doors={205,221,237,253}
+local master_doors={207,223,239,255}
 local floor_spr={192}
 local no_vase_flr_tile_spr=208
 local bomb_spr={70,71}
@@ -112,9 +114,8 @@ function start_game()
 	current_room=create_current_room(rooms[1])
 	--initialize player with starting tile position
 	-- setup_room(current_room)
-current_room:setup()
+	current_room:setup()
 	player=create_player(current_room.start_x,current_room.start_y)
-
 	_upd=upd_game
 	_drw=draw_game
 end
@@ -299,6 +300,7 @@ end
 
 function handle_auto_pickup_collision(obj,nx,ny)
 	if (obj == nil) return
+
 	local nt=mget(nx,ny)
 	if obj.name=="potion" then
 		player:heal(true)
@@ -308,26 +310,27 @@ function handle_auto_pickup_collision(obj,nx,ny)
 	end
 
 	--chest
-	if has_flag(nt,2) then
-		add(debug,nt)
+	-- if has_flag(nt,2) then
+	if obj.name=="chest" then
 		sfx(5)
 		player.keys+=1
 		--empty chest sprite
 		mset(nx,ny,chest_spr[1])
+		del(game_objects,obj)
 	end
 
 --locked door
-	if has_flag(nt,7) and player.keys>0 then
+	if obj.name=="locked" and player.keys>0 then
 		sfx(4)
 		--change tile in location to unlocked door color
 		mset(nx,ny,nt+1)
 		--remove key from inventory
 		player.keys-=1
+		del(game_objects, obj)
 	end
 
-	--todo
 	--goal door
-	if has_flag(nt,3) and player.master_key==1 then
+	if obj.name=="master" and player.master_key==1 then
 		_upd=upd_lvl_complete
 		_drw=draw_lvl_complete
 	end
@@ -478,6 +481,8 @@ function create_room(x,y,sx,sy,n,mh,mb,ch,lds)
 			tile.y=y
 			tile.spr=mget(x,y)
 			add(obj.layout,tile)
+
+			-- set empty tiles (floor space)
 			for f in all(floor_spr) do --incase more floor tiles are added
 				if tile.spr==f then add(obj.empty_tiles,{x=tile.x,y=tile.y}) end
 			end
@@ -498,7 +503,7 @@ function create_current_room(room)
 		vases_smashed=0,
 		setup=function(self)
 			self:setup_vases()
-			self:setup_room_items()
+			self:setup_items()
 		end,
 		setup_vases=function(self)
 		  local vases={}
@@ -540,7 +545,7 @@ function create_current_room(room)
 		  --set min gems needed
 		  self.min_gems_needed=flr(self.gems/2)
 		end,
-		setup_room_items=function(self)
+		setup_items=function(self)
 			-- place potion(s)
 			local heals=flr(rnd(self.max_heal))
 			local h
@@ -549,6 +554,21 @@ function create_current_room(room)
 				create_potion(self.empty_tiles[i].x,self.empty_tiles[i].y)
 				del(self.empty_tiles,i)
 				mset(self.empty_tiles[i].x,self.empty_tiles[i].y,0) --set transparent sprite on tile
+			end
+
+			--set doors & chests
+			for tile in all(self.layout) do
+				--chests
+				if (tile.spr==113) create_chest(tile.x,tile.y)
+
+				--doors
+				for ld in all(locked_doors) do
+					if (tile.spr==ld) create_door(tile.x,tile.y,"locked")
+				end
+
+				for md in all(master_doors) do
+					if (tile.spr==md) create_door(tile.x,tile.y,"master")
+				end
 			end
 		end
 	}-- local obj
@@ -574,9 +594,36 @@ function create_vase(x,y,v_spr) --todo randomly generate x,y
 end
 
 -- chests ======================================
-
+function create_chest(x,y)
+	local obj = {
+		name = "chest",
+		x=x,
+		y=y,
+		update=function()
+			--do nothing
+		end,
+		draw=function()
+			--do nothing
+		end
+	}
+	add(game_objects, obj)
+end
 
 -- doors ======================================
+function create_door(x,y,typ)
+	local obj = {
+		name = typ,
+		x=x,
+		y=y,
+		update=function()
+			--do nothing
+		end,
+		draw=function()
+			--do nothing
+		end
+	}
+	add(game_objects, obj)
+end
 
 -- potion ======================================
 function create_potion(x,y)
