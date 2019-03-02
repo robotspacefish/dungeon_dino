@@ -4,8 +4,8 @@ __lua__
 
 -- # tab 0
 -- 	 ##	global variables
---				  ## sprites
---						## anims
+--				  ### sprites
+--						### anims
 -- 	 ##	_init()
 -- 	 ##	start_game()
 -- 	 ## _update60()
@@ -42,14 +42,14 @@ __lua__
 --   ## create_dungeon_layout()
 --   ## create_room(x,y,sx,sy,n,mh,mb,ch,lds)
 --   ## create_current_room(room)
+--   			### setup_room(c_room)
+--   			### setup_vases(c_room)
+--   			### setup_room_items(c_room)
 --   ## create_vase(x,y,v_spr)
 --   ## create_potion(x,y)
 --   ## create_bomb(x,y)
 --   ## create_game_object(name,x,y,props)
 -- # tab 5 misc (setups)
---   ## setup_room(c_room)
---   ## setup_vases(c_room)
---   ## setup_room_items(c_room)
 -- # tab 6 ui
 --   ## ui()
 --   ## ui_health_display(x)
@@ -111,7 +111,8 @@ function start_game()
 	--set first room
 	current_room=create_current_room(rooms[1])
 	--initialize player with starting tile position
-	setup_room(current_room)
+	-- setup_room(current_room)
+current_room:setup()
 	player=create_player(current_room.start_x,current_room.start_y)
 
 	_upd=upd_game
@@ -147,7 +148,8 @@ end
 function upd_game_setup()
 	clear_table(current_room)
 	current_room=create_current_room(rooms[current_room.number+1])
-	setup_room(current_room)
+	-- setup_room(current_room)
+	current_room:setup()
 	player:set_start(current_room.start_x,current_room.start_y)
 	player:reset_keys()
 	_upd=upd_game
@@ -274,7 +276,10 @@ function handle_item_collision(obj)
 				player.hit=true
 			end
 
-		-- if (player.health==0) mode="game_over" --todo put back
+		if (player.health==0) then
+			_upd=upd_game_over
+			_drw=draw_game_over
+		end
 
 		--check vase for gem
 		if (obj.has_gem) then
@@ -489,13 +494,68 @@ function create_current_room(room)
 		min_gems_needed=0,
 		vases_left=0,
 		vases_smashed=0,
-	}
+		setup=function(self)
+			self:setup_vases()
+			self:setup_room_items()
+		end,
+		setup_vases=function(self)
+		  local vases={}
+		  local vase_types={lg_vase_spr[1],sm_vase_spr[1]}
+		  local total_vases=flr(rnd(#self.empty_tiles/3))+#self.empty_tiles/2
+
+		  local t
+		  for t in all(self.empty_tiles) do
+		    local r=flr(rnd(5))
+		    -- if r<=1 then --place vase
+		    if total_vases>0  and r<=1 then
+		      self.vases_left+=1
+		      local v_spr=vase_types[flr(rnd(2))+1]
+		      local vase=create_vase(t.x,t.y,v_spr)
+		      del(self.empty_tiles,t) --remove empty tile from list
+		      mset(t.x,t.y,0) --set transparent sprite on tile
+		      total_vases-=1 --todo
+		      add(vases,vase)
+		    end
+		  end
+
+		  local v
+		  local b=self.max_bombs
+		  for v in all(vases) do
+		    local r=flr(rnd(4))
+		    if r==0 then --place bomb
+		      if b>0 then
+		        v.has_bomb=true --place gem if max bombs placed
+		        b-=1
+		      else
+		        v.has_gem=true --place gem
+		        self.gems+=1
+		      end
+		    elseif r==2 or r==3 then
+		      v.has_gem=true
+		      self.gems+=1
+		    end
+		  end
+		  --set min gems needed
+		  self.min_gems_needed=flr(self.gems/2)
+		end,
+		setup_room_items=function(self)
+			-- place potion(s)
+			local heals=flr(rnd(self.max_heal))
+			local h
+			for h=0,heals do
+				local i=flr(rnd(#self.empty_tiles)+1)
+				create_potion(self.empty_tiles[i].x,self.empty_tiles[i].y)
+				del(self.empty_tiles,i)
+				mset(self.empty_tiles[i].x,self.empty_tiles[i].y,0) --set transparent sprite on tile
+			end
+		end
+	}-- local obj
 
 	for k,v in pairs(room) do
 		obj[k]=v
 	end
 	return obj
-end
+end--create_current_room
 
 -- vase ======================================
 function create_vase(x,y,v_spr) --todo randomly generate x,y
@@ -591,68 +651,6 @@ end
 -->8
 -- misc ==================================================================
 -- tab 5
---====== setup room ==============
-function setup_room(c_room)
-	setup_vases(c_room)
-	setup_room_items(c_room)
-end
-
-function setup_vases(c_room)
-	local vases={}
-	local vase_types={lg_vase_spr[1],sm_vase_spr[1]}
-
-	local total_vases=flr(rnd(#c_room.empty_tiles/3))+#c_room.empty_tiles/2
-
-	local t
-	for t in all(c_room.empty_tiles) do
-		local r=flr(rnd(5))
-		-- if r<=1 then --place vase
-		if total_vases>0  and r<=1 then
-			c_room.vases_left+=1
-			local v_spr=vase_types[flr(rnd(2))+1]
-			local vase=create_vase(t.x,t.y,v_spr)
-			del(c_room.empty_tiles,t) --remove empty tile from list
-			mset(t.x,t.y,0) --set transparent sprite on tile
-			total_vases-=1 --todo
-			add(vases,vase)
-		end
-	end
-
-	local v
-	local b=c_room.max_bombs
-	for v in all(vases) do
-		local r=flr(rnd(4))
-		if r==0 then --place bomb
-			if b>0 then
-				v.has_bomb=true --place gem if max bombs placed
-				b-=1
-			else
-				v.has_gem=true --place gem
-				current_room.gems+=1
-			end
-		elseif r==2 or r==3 then
-			v.has_gem=true
-			current_room.gems+=1
-		end
-	end
-
-	--set min gems needed
-	c_room.min_gems_needed=flr(c_room.gems/2)
-end
-
---todo refactor: combine with setup_vases
-function setup_room_items(c_room)
-	-- place potion(s)
-	local heals=flr(rnd(c_room.max_heal))
-	local h
-	for h=0,heals do
-		local i=flr(rnd(#c_room.empty_tiles)+1)
-		create_potion(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y)
-		del(c_room.empty_tiles,i)
-		mset(c_room.empty_tiles[i].x,c_room.empty_tiles[i].y,0) --set transparent sprite on tile
-	end
-end
-
 -->8
 --===== ui functions ======================================
 -- tab 6
@@ -1096,4 +1094,3 @@ __music__
 00 00000000
 00 00000000
 00 00000000
-
