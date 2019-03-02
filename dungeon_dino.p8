@@ -26,7 +26,7 @@ __lua__
 -- # tab 2 collisions
 --   ## has_flag(next_tile,flag)
 --   ## is_item_collision(next_x,next_y)
---   ## handle_item_collision(obj)
+--   ## handle_btnpress_collision(obj)
 -- # tab 3 player
 --   ## :set_start
 --   ## :reset_keys
@@ -35,7 +35,7 @@ __lua__
 --   ## :walk
 --   ## :bump
 --   ## :move
---   ## :action
+--   ## :do_btnpress_action
 --   ## :update
 --   ## :draw
 -- # tab 4 create objects
@@ -128,6 +128,7 @@ function _draw()
 	_drw()
 	flashcount+=1 -- for text flashing
 	palt(0,false)
+	print_debug()
 end--_draw()
 
 -->8
@@ -251,7 +252,9 @@ function is_item_collision(next_x,next_y)
 	return nil
 end
 
-function handle_item_collision(obj)
+function handle_btnpress_collision(obj)
+	-- asking again if the obj is a vase incase I want to add
+	--  other objects here in the future
 	if obj.name=="vase" then
 		local v_spr=obj.v_spr
 		local smash_spr
@@ -274,6 +277,8 @@ function handle_item_collision(obj)
 				create_bomb(obj.x,obj.y)
 			 player.health-=1
 				player.hit=true
+				sfx(12)
+				player.flash=max_flash_frames
 			end
 
 		if (player.health==0) then
@@ -289,14 +294,44 @@ function handle_item_collision(obj)
 			-- current_room.gems-=1
 		end
 	end
-
-	if obj.name=="potion" then
-		player:heal(true)
-		mset(obj.x,obj.y,floor_spr[1])
-	end
 		del(game_objects, obj)
 end
 
+function handle_auto_pickup_collision(obj,nx,ny)
+	if (obj == nil) return
+	local nt=mget(nx,ny)
+	if obj.name=="potion" then
+		player:heal(true)
+		mset(obj.x,obj.y,floor_spr[1])
+		del(game_objects,obj)
+		player:move(obj.x,obj.y,player.direction)
+	end
+
+	--chest
+	if has_flag(nt,2) then
+		add(debug,nt)
+		sfx(5)
+		player.keys+=1
+		--empty chest sprite
+		mset(nx,ny,chest_spr[1])
+	end
+
+--locked door
+	if has_flag(nt,7) and player.keys>0 then
+		sfx(4)
+		--change tile in location to unlocked door color
+		mset(nx,ny,nt+1)
+		--remove key from inventory
+		player.keys-=1
+	end
+
+	--todo
+	--goal door
+	if has_flag(nt,3) and player.master_key==1 then
+		_upd=upd_lvl_complete
+		_drw=draw_lvl_complete
+	end
+end
 -->8
 --player
 -- tab 3
@@ -359,66 +394,33 @@ function create_player(x,y)
 		end,
 -- move ==================================================
 		move=function(self,nx,ny,b)
-			local can_walk=false
+			local can_walk=has_flag(mget(nx,ny),0)
 			local last_tile=mget(self.x,self.y)
 			self.direction=b
 			self:do_flp()
 			set_anim(self,player_anims)
 
-			can_walk=has_flag(mget(nx,ny),0)
 			if can_walk then
-				local next_tile=mget(nx,ny)
+
 				sfx(11)
 				obstacle_counter=0
 				self.x=nx
 				self.y=ny
-
-				if mget(self.x,self.y) == heal_spr then
-					player:heal(true)
-					mset(self.x,self.y,floor_spr[1])
-						-- del(game_objects, obj)
-				end
+			else
+				handle_auto_pickup_collision(is_item_collision(nx,ny),nx,ny)
 			end -- if can_walk
 
-			if current_room.gems_collected==current_room.min_gems_needed then self.master_key=1 end
+			-- get master key
+			if (current_room.gems_collected==current_room.min_gems_needed) self.master_key=1
 		end,
--- action ==================================================
-	action=function(self)
+-- do_btnpress_action ==================================================
+	do_btnpress_action=function(self)
 		--check for collision with item
 		local nx,ny=self.x+dir_x[self.direction+1],self.y+dir_y[self.direction+1]
 		local nt=mget(nx,ny)
-		item=is_item_collision(nx,ny)
-		if (item ~=nil)	handle_item_collision(item)
-
-	--bomb
-	if self.hit then
-		sfx(12)
-		self.flash=max_flash_frames
-	end
-
-		--chest
-		if has_flag(nt,2) then
-			sfx(5)
-			player.keys+=1
-			--empty chest sprite
-			mset(nx,ny,chest_spr[1])
-		end
-
-	--locked door
-		if has_flag(nt,7) and player.keys>0 then
-			sfx(4)
-			--change tile in location to unlocked door color
-			mset(nx,ny,nt+1)
-			--remove key from inventory
-			player.keys-=1
-		end
-
-		--todo
-		--goal door
-		if has_flag(nt,3) and player.master_key==1 then
-			_upd=upd_lvl_complete
-			_drw=draw_lvl_complete
-		end
+		local item=is_item_collision(nx,ny)
+		-- if (item ~=nil)	handle_btnpress_collision(item)
+		if (item ~= nil and item.name == "vase")	handle_btnpress_collision(item)
 	end,
 -- update ==================================================
 			update=function(self)
@@ -447,9 +449,8 @@ end
 -- dungeon ======================================
 function create_dungeon_layout()
 	--x,y,sx,sy,n,mh,mb
-	--todo create more rooms efficiently
 	create_room(0,0,1,3,1,1,3)
-	create_room(16,0,17,10 ,2,3,4)
+	create_room(16,0,17,10,2,3,4)
 	create_room(32,0,45,3,3,4,5)
 	create_room(48,0,59,12,4,3,5)
 	-- create_room(64,0,33,12,5,4,5)
@@ -571,6 +572,11 @@ function create_vase(x,y,v_spr) --todo randomly generate x,y
 		end
 	})
 end
+
+-- chests ======================================
+
+
+-- doors ======================================
 
 -- potion ======================================
 function create_potion(x,y)
@@ -729,7 +735,7 @@ function do_btn(b)
 	if (b<0) return
 	if (b<4) player:move(player.x+dir_x[b+1],player.y+dir_y[b+1],b)
 	if (b==4)	player:heal(false)
-	if (b==5) player:action() --todo replace with auto action
+	if (b==5) player:do_btnpress_action() --todo replace with auto do_btnpress_action
 end
 
 function copy_table(ot)
@@ -941,11 +947,11 @@ __map__
 0000000000000000000000000000000009090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000009090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 e4d3d3d3e4d3d3d3d3e3d3d3d3d3d3e3e4d3d3d3d3d3d3d3d3d3d3d3d3dfd3e3e4d3d3d3d3d3e3d3d3d3d3d3d3dcd3e3e4d3d3d3d3e4d3d3d3d3d3e3d3d3d3e3e4d3d3d3d3d3d3d3d3d3d3d3d3d3d3e3e4d3d3d3d3d3d3d3d3d3d3d3d3d3d3e30000000000000000000000000000000000000000000000000000000000000000
-d1c0c0c0d1c0c0c071d2c0c0c0c071d2d1d0d0d0d0d0d0d0d0d0d0d0d0d0d0d2d171c0c0c0d0cdd0d0d0d0d0d0c0c0d2d1d0d0d0d0d1d0d0d0d0d0ced0d0d0d2d1c0c0d0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
-d1c0c0c0d1c0c0c0c0d2c0c0c0c0c0d2d1dee3d0c0c0c0c0c0c0c0e4d3ddd3e3e4d3d3e3c0c0e4d3d3d3d3d3e3d0c0d2d1d0d0d0d0d171c1c1c1d0d2d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
-d1c0d0c0d1c0c0d0c0d2c0c0c0c0c0d2d1d0d2d0c0c0c0c0c0c0c0d1c0d0c0d2d1c0c0cdd0d0fed0c071c0d0cdd0c0d2d1d0d0d0d0d3d3d3dfd3d3d3d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
-d1c0c0c0e4d3d3ddd3d3c0c0e4d3d3e3d171d2d0d0c0c0c0c0c0c0d1c0c0c0d2d1c0d0d2c0c0d1c0c0c0c0c0d2c071d2d1d0d0d0d0d0d0d0d0d0d0d0d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0cf0000000000000000000000000000000000000000000000000000000000000000
-d1c0c0c0d1c0d0d0c0c0c0d0fdd0c0d2d1c3e2e4ddd3d3e4d3d3d3d1c0c0c0d2e4d3dee3c0c0e4d3d3d3d3d3d3d3d3e3d1d0d0d0d0d0d0d0d0d0d0d0d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1d0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
+d1d0d0c0d1c0c0c071d2c0c0c0c071d2d1d0d0d0d0d0d0d0d0d0d0d0d0d0d0d2d171c0c0c0d0cdd0d0d0d0d0d0c0c0d2d1d0d0d0d0d1d0d0d0d0d0ced0d0d0d2d1c0c0d0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
+d1d0d0c0d1c0c0c0c0d2c0c0c0c0c0d2d1dee3d0c0c0c0c0c0c0c0e4d3ddd3e3e4d3d3e3c0c0e4d3d3d3d3d3e3d0c0d2d1d0d0d0d0d171c1c1c1d0d2d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
+d1d0d0c0d1c0c0d0c0d2c0c0c0c0c0d2d1d0d2d0c0c0c0c0c0c0c0d1c0d0c0d2d1c0c0cdd0d0fed0c071c0d0cdd0c0d2d1d0d0d0d0d3d3d3dfd3d3d3d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
+d1d0c0c0e4d3d3ddd3d3c0c0e4d3d3e3d171d2d0d0c0c0c0c0c0c0d1c0c0c0d2d1c0d0d2c0c0d1c0c0c0c0c0d2c071d2d1d0d0d0d0d0d0d0d0d0d0d0d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0cf0000000000000000000000000000000000000000000000000000000000000000
+d1d0c0c0d1c0d0d0c0c0c0d0fdd0c0d2d1c3e2e4ddd3d3e4d3d3d3d1c0c0c0d2e4d3dee3c0c0e4d3d3d3d3d3d3d3d3e3d1d0d0d0d0d0d0d0d0d0d0d0d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1d0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
 d1d0e4d3d3e3d0d0d0d0d0d0d1d0c0d2d1c071d1d0c0d0fdd0c071d171d0c0d2d1c0d0d2c0d0cdd0c0c0c0c0c0c0c0d2d1d0d0d0d0d0d0d0d0d0d0d0d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
 d1d0d171c0d2d0e4d3ddd3d3d1d0c0d2d1c0c0d1d0c0c0d1c0c0c0e4d3ddd3e3d171d0d2c0c0d3d3d3d3d3e3c0c0c0d2d1d0d0d0d0d0d0d0d0d0d0d0d0d0d0d2ffc0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
 d1d0d1c0d0d2d0d1c0d0c0c0d1d0d0cffcd0c0d1d0c071d1c0c0d0fdd0d0c0d2e4d3dde3c0c0c0c0c0c071d2c0c0c0d2d1d0d0d0d0d0d0d0d0d0d0d0d0d0d0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d2d1c0c0c0c0c0c0c0c0c0c0c0c0c0c0d20000000000000000000000000000000000000000000000000000000000000000
