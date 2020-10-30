@@ -244,7 +244,7 @@ function draw_lvl_complete()
 	print(g_collected,hcenter(g_collected),50,9)
 	print(g_missed,hcenter(g_missed),60,9)
 	print(t_gems,hcenter(t_gems),70,9)
-	print("press ❎ to start",hcenter("press ❎ to continue"),100,11)
+	print("press ❎ to continue",hcenter("press ❎ to continue"),100,11)
 end
 
 function draw_game_over()
