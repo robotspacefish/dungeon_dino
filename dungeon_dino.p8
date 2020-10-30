@@ -116,7 +116,6 @@ function start_game()
 	--set first room
 	current_room=create_current_room(rooms[1])
 	--initialize player with starting tile position
-	-- setup_room(current_room)
 	current_room:setup()
 	player=create_player(current_room.start_x,current_room.start_y)
 	_upd=upd_game
@@ -152,13 +151,19 @@ end
 
 function upd_game_setup()
 	clear_table(current_room)
-	current_room=create_current_room(rooms[current_room.number+1])
-	-- setup_room(current_room)
-	current_room:setup()
-	player:set_start(current_room.start_x,current_room.start_y)
-	player:reset_keys()
-	_upd=upd_game
-	_drw=draw_game
+	if (current_room.number+1 <= #rooms) then
+		current_room=create_current_room(rooms[current_room.number+1])
+		current_room:setup()
+		player:set_start(current_room.start_x,current_room.start_y)
+		player:reset_keys()
+
+		_upd=upd_game
+		_drw=draw_game
+	else
+		-- no more trial levels - end game
+		_upd=upd_game_over
+		_drw=draw_end_trial
+	end
 end
 
 function upd_game()
@@ -207,9 +212,9 @@ end
 function draw_instructions()
 	print("how to play",hcenter("how to play"),8,7)
 	print("collect at least half the gems", hcenter("collect at least half the gems"),20,9)
-	print("for yellow door key to appear", hcenter("for yellow door key to appear"),30,9)
-	print("keys for brown doors in chests", hcenter("keys for brown doors in chests"),40,9)
-	print("try to avoid bombs in vases", hcenter("try to avoid bombs in vases"),50,9)
+	print("  for yellow door key to appear", hcenter("  for yellow door key to appear"),30,9)
+	print("brown door keys are in chests", hcenter("brown door keys are in chests"),40,9)
+	print("try to avoid the bombs in vases", hcenter("try to avoid the bombs in vases"),50,9)
 	print("arrow keys to move", hcenter("arrow keys to move"),65,9)
 	print("x to smash vases ", hcenter("❎ to smash vases "),75,9)
 	print("z to use potion if needed", hcenter("Z to use potion if needed"),85,9)
@@ -239,7 +244,7 @@ function draw_lvl_complete()
 	print(g_collected,hcenter(g_collected),50,9)
 	print(g_missed,hcenter(g_missed),60,9)
 	print(t_gems,hcenter(t_gems),70,9)
-	print("press ❎ to start",hcenter("press ❎ to continue"),100,11)
+	print("press ❎ to continue",hcenter("press ❎ to continue"),100,11)
 end
 
 function draw_game_over()
@@ -247,6 +252,13 @@ function draw_game_over()
 	print("game over",hcenter("game over"),128/2-3,8)
 	print("press c to try again",hcenter("press c to try again"),128/2+6,7)
 end
+
+function draw_end_trial()
+	print("thank you for playing", hcenter("thank you for playing"), 128/2-12,3)
+	print("the dungeon dino demo!", hcenter("the dungeon dino demo!"), 128/2-3,3)
+	print("press c to play again",hcenter("press c to play again"),128/2+6,11)
+end
+
 -->8
 -- collisions ======================================
 -- tab 2
@@ -463,8 +475,8 @@ function create_dungeon_layout()
 	--x,y,sx,sy,n,mh,mb
 	create_room(0,0,1,3,1,1,3)
 	create_room(16,0,17,10,2,3,4)
-	create_room(32,0,45,3,3,4,5)
-	create_room(48,0,59,12,4,3,5)
+	-- create_room(32,0,45,3,3,4,5)
+	-- create_room(48,0,59,12,4,3,5)
 	-- create_room(64,0,33,12,5,4,5)
 	-- create_room(80,0,33,12,6,3,5)
 end
