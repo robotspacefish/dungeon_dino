@@ -180,7 +180,6 @@ function upd_lvl_complete()
 end
 
 function upd_game_over()
-	-- if btnp(4) then mode="reset_game" end
 	if btnp(4) then _upd=upd_reset_game end
 end
 
