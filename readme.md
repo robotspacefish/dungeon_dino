@@ -18,4 +18,4 @@ Find as many gems as you can in a room
 Options:
 
 * Visit [https://robotspacefish.dev/dungeon_dino/](https://robotspacefish.dev/dungeon_dino/)
-* Run `dungeon_dino.p8` within the Pico-8 console
+* Run `dungeon_dino.p8` within the [Pico-8](https://www.lexaloffle.com/pico-8.php) console
