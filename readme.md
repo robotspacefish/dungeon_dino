@@ -6,10 +6,16 @@
 	<img src="https://github.com/robotspacefish/dungeon_dino/blob/master/dungeon_dino_001.png?raw=true" alt="gameplay screenshot">
 </center>
 
-### Objective:
+## Objective:
 Find as many gems as you can in a room
 
 * Smash vases to find the gems
 * You need at least half of the gems in a room to get the key to proceed to the next room
 * Beware, some vases contain explosives
 * Weigh your options: If you try to collect every gem you might not live to make it to the next room
+
+### To Play
+Options:
+
+* Visit [https://robotspacefish.dev/dungeon_dino/](https://robotspacefish.dev/dungeon_dino/)
+* Run `dungeon_dino.p8` within the Pico-8 console
